@@ -1,0 +1,7 @@
+# macOS drops these into every folder — keep them out of the repo
+.DS_Store
+._*
+
+# Downscaled images produced by the packager
+/tmp/
+sk_opt/

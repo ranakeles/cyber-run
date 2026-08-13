@@ -1,0 +1,258 @@
+/* =========================================================
+   SİBER UÇUŞ — Air Flyer uçuşu + Cyber Shield soruları
+   ========================================================= */
+:root{
+  --cyan:#38bdf8; --cyan2:#22d3ee; --gold:#fbbf24;
+  --safe:#22c55e; --safe-glow:rgba(34,197,94,.55);
+  --danger:#ef4444; --danger-glow:rgba(239,68,68,.55);
+  --line:rgba(56,189,248,.22); --text:#e6edf7; --muted:#8aa0c2;
+  /* Oyun yazıları: yuvarlak ve oyuncu. E-postalar ayrı (nötr) yazı kullanır. */
+  --hud:'Fredoka',system-ui,sans-serif; --body:'Nunito',system-ui,sans-serif;
+  /* E-posta yazısı: sistem fontu Türkçe harfleri (ı ğ ş İ) cihazdan cihaza
+     farklı çiziyordu → Türkçe desteği tam, nötr ve posta havasında sabit font. */
+  --mailfont:'Open Sans','Segoe UI',Arial,sans-serif;
+  /* Sokak paleti */
+  --ink:#2b2114; --paper:#fffdf6; --cream:#f7e6c4;
+  --grass:#4fbf62; --grass-dk:#227033;
+  --brick:#e8564e; --brick-dk:#8f2220;
+  --sun:#ffc14a; --sun-dk:#b9761a;
+}
+*{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; overflow:hidden; }
+body{ font-family:var(--body); color:var(--text); background:#0b1020; user-select:none; touch-action:none; }
+.hidden{ display:none !important; }
+
+/* Uçuş tuvali */
+#game{ position:fixed; inset:0; width:100%; height:100%; display:block; }
+
+/* ---------- ÜST BİLGİ ---------- */
+/* Üst bar SAHNEYE oturur (pencereye değil): genişliği script'te sahne
+   genişliğine eşitlenir. Yoksa geniş ekranda skor, oyunun değil pencerenin
+   sağına giderdi. Kalpler solda, skor sağda. */
+#hud{ position:fixed; top:0; left:50%; transform:translateX(-50%); z-index:5;
+  display:flex; justify-content:space-between; align-items:center;
+  gap:26px; padding:16px 22px; pointer-events:none; }
+.hud-lab{ font-family:var(--hud); letter-spacing:.22em; font-size:11px; color:#dbe6f7; text-shadow:0 1px 6px rgba(0,0,0,.5); }
+.hud-val{ font-family:var(--hud); font-weight:700; font-size:30px; line-height:1; color:#fff; text-shadow:0 2px 12px rgba(0,0,0,.6); }
+/* Can göstergesi: 3 kalp yeri hep görünür — kalanlar dolu, gidenler sönük.
+   Kalpler kullanıcının görselinden gelir (assets/life.png = dolu şerit,
+   life2.png = boş şerit). Her görselde 3 kalp yan yana duruyor ve her kalp
+   tam kare; bu yüzden kutuya görselin ÜÇTE BİRİ gösterilir:
+   background-size:300% → 0% sol kalp, 50% orta, 100% sağ.               */
+/* Puan sayacı: kullanıcının çerçeve görseli (kupa + bilet + uçak). Rakamlar
+   krem biletin içine, uçağın soluna oturur — oranlar görselden ÖLÇÜLDÜ
+   (krem panel %29.6–%90.5 yatay, uçak %81.4'te başlıyor). Görsel
+   değişirse bu oranlar da yeniden ölçülmeli. */
+.hud-score{ position:relative; width:214px; height:78.6px; background-size:100% 100%; background-repeat:no-repeat;
+  filter:drop-shadow(0 3px 7px rgba(0,0,0,.4)); }
+.score-digits{ position:absolute; left:31%; right:20%; top:31.8%; bottom:28.2%; }
+/* Rakam görselinden dizilen sayı (hem HUD'da hem bitiş kurdelesinde) */
+.rakam-dizi{ display:flex; align-items:center; justify-content:center; gap:1px; }
+.rakam-dizi i{ display:block; background-repeat:no-repeat; }
+
+.hud-can{ display:flex; gap:4px; align-items:center; }
+.hud-can .can{ width:46px; height:46px; background-size:300% 100%; background-repeat:no-repeat;
+  filter:drop-shadow(0 2px 5px rgba(0,0,0,.45)); transition:opacity .2s ease; }
+/* Can kazanınca/kaybedince gösterge kısa bir darbe yapar: değişimin
+   fark edilmemesi en sık şikâyet edilen şey. */
+.hud-can.vur{ animation:canVur .45s ease; }
+@keyframes canVur{ 0%{ transform:scale(1) } 35%{ transform:scale(1.22) } 100%{ transform:scale(1) } }
+
+/* ---------- KAPLAYAN EKRANLAR (başlangıç / bitiş) ----------
+   Arkada oyun sahnesi CANLI akar; üstte sadece yumuşak bir vinyet var.
+   Kart yok — mobil oyunlardaki gibi doğrudan sahne üstü yerleşim.        */
+.overlay{ position:fixed; inset:0; z-index:10; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:14px; padding:26px 22px; overflow:auto; text-align:center;
+  background:linear-gradient(180deg, rgba(8,22,44,.55) 0%, rgba(8,22,44,.12) 34%,
+             rgba(8,22,44,.20) 62%, rgba(8,22,44,.72) 100%); }
+
+/* ---- BAŞLANGIÇ: kullanıcının hazırladığı tam ekran tasarım (home_page.png) ----
+   Görselin oranı ekrandan farklı olabilir; kırpmamak için 'contain' ile
+   tam gösterip arkasını aynı görselin bulanık kopyasıyla dolduruyoruz. */
+.overlay.home{ padding:0; background:#0a1a3a; gap:0; }
+.home-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  filter:blur(26px) brightness(.65); transform:scale(1.12); }
+.home-img{ position:relative; z-index:1; max-width:100%; max-height:100%;
+  object-fit:contain; filter:drop-shadow(0 10px 40px rgba(0,0,0,.5)); }
+.home-hit{ position:absolute; inset:0; z-index:2; background:none; border:none;
+  cursor:pointer; -webkit-tap-highlight-color:transparent; }
+
+/* ================= BİTİŞ EKRANI =================
+   Tasarımın tamamı end_page2.png. Sahne, görselin en-boy oranıyla (853:1844)
+   script'te ölçülendirilir; içindeki her kutu SAHNENİN yüzdesi olarak
+   konumlanır, böylece hangi ekranda olursa olsun görselin üstüne oturur.
+   Yüzdeler görselin pikselleri taranarak ÖLÇÜLDÜ — görsel değişirse
+   yeniden ölçülmeli. Yazı boyu da sahne yüksekliğine bağlı (font-size
+   script'te veriliyor), yani ekranla birlikte büyüyüp küçülür.          */
+.end-stage{ position:relative; z-index:1; background-size:100% 100%; background-repeat:no-repeat;
+  filter:drop-shadow(0 10px 40px rgba(0,0,0,.5)); }
+.end-slot{ position:absolute; display:flex; align-items:center; justify-content:center;
+  font-family:var(--hud); font-weight:700; color:#1f3a63; line-height:1;
+  font-size:1.4em; letter-spacing:.01em; }
+/* Kurdele: sadece skor. Rakamlar HUD'dakiyle aynı görselden dizilir. */
+.end-skor{ position:absolute; left:14.89%; width:70.22%; top:17.46%; height:6.29%; }
+/* SKOR TABLOSU paneli — oynayanların sıralaması */
+.end-lb{ position:absolute; left:18.17%; width:63.78%; top:32.54%; height:26.68%;
+  display:flex; flex-direction:column; justify-content:space-evenly;
+  padding:2.5% 5.5%; font-family:var(--hud); color:#1f3a63; }
+.lb-satir{ display:flex; align-items:center; gap:.5em; font-size:.95em; line-height:1; }
+.lb-satir .rk{ width:1.6em; text-align:center; font-weight:700; color:#8a6f45; }
+.lb-satir .nm{ flex:1; text-align:left; font-weight:600; overflow:hidden;
+  white-space:nowrap; text-overflow:ellipsis; }
+.lb-satir .sc{ font-weight:800; font-variant-numeric:tabular-nums; }
+/* Oyuncunun kendi satırı öne çıksın */
+.lb-satir.ben{ color:#c2410c; }
+.lb-satir.ben .rk{ color:#c2410c; }
+/* Görseldeki butonların üstündeki görünmez dokunma alanları */
+.end-hit{ position:absolute; background:none; border:none; padding:0; cursor:pointer;
+  -webkit-tap-highlight-color:transparent; border-radius:99px; }
+/* Butonlar yan yana (end_page5'ten ölçüldü) */
+.end-home { left:9.85%;  width:37.51%; top:88.83%; height:4.66%; }
+.end-again{ left:50.18%; width:38.68%; top:88.77%; height:4.89%; }
+
+/* Üstte ince marka şeridi */
+.brand-strip{ position:absolute; top:16px; left:0; right:0; font-family:var(--hud); font-weight:600;
+  letter-spacing:.30em; font-size:11px; color:#fff; opacity:.92; text-shadow:0 2px 8px rgba(0,0,0,.6); }
+
+/* ---- Oyun başlığı: kalın, çok katmanlı, çizgi film oyunu tadında ---- */
+.title-wrap{ margin-top:6px; }
+.title-kicker{ font-family:var(--hud); font-weight:600; letter-spacing:.22em; font-size:12px;
+  color:#ffe9b8; text-shadow:0 2px 8px rgba(0,0,0,.65); margin-bottom:2px; }
+.game-title{ font-family:var(--hud); font-weight:700; font-size:clamp(44px,13vw,72px); line-height:.98;
+  letter-spacing:.02em; color:#fff;
+  text-shadow:
+     0 3px 0 #b9761a, 0 6px 0 #8a5510,
+     0 10px 22px rgba(0,0,0,.45);
+  -webkit-text-stroke:3px #8a5510; paint-order:stroke fill; }
+.game-title span{ color:var(--sun); }
+
+/* Kahraman görseli (oyunun kendi karakteri) */
+.hero-img{ width:min(46vw,190px); filter:drop-shadow(0 16px 26px rgba(0,0,0,.45));
+  animation:heroBob 2.4s ease-in-out infinite; }
+@keyframes heroBob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-9px) } }
+
+/* Nasıl oynanır rozetleri */
+.how-row{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.how-chip{ display:flex; align-items:center; gap:7px; font-size:13px; color:#3a2a17; font-weight:600;
+  background:rgba(255,253,246,.94); border-radius:999px; padding:8px 14px;
+  box-shadow:0 4px 0 rgba(150,110,60,.35), 0 8px 18px rgba(0,0,0,.28); }
+.how-chip .ico{ font-size:15px; }
+.how-chip b{ font-weight:800; }
+
+/* Ana oyna butonu: tok, 3B, dokunmatik dostu */
+.play-btn{ font-family:var(--hud); font-weight:700; letter-spacing:.10em; font-size:27px; border:none;
+  cursor:pointer; padding:17px 62px; border-radius:20px; color:#fff; margin-top:4px;
+  background:linear-gradient(180deg,#5cd06f,var(--grass-dk));
+  box-shadow:0 8px 0 #1a5827, 0 18px 32px rgba(26,88,39,.45), 0 2px 0 rgba(255,255,255,.35) inset;
+  text-shadow:0 2px 4px rgba(0,0,0,.3); transition:transform .1s, box-shadow .12s;
+  animation:playPulse 1.9s ease-in-out infinite; }
+@keyframes playPulse{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.035) } }
+.play-btn:active{ transform:translateY(5px) scale(.99); animation:none;
+  box-shadow:0 3px 0 #1a5827, 0 8px 18px rgba(26,88,39,.4); }
+
+.link-btn{ background:none; border:none; cursor:pointer; font-family:var(--body); font-weight:600;
+  font-size:13px; color:#ffe9b8; opacity:.85; text-decoration:underline; padding:6px; }
+/* Beyaz sonuç kartının üstündeyken koyu olmalı, yoksa okunmuyor */
+.result-card .link-btn{ color:#8a7250; opacity:1; }
+.start-foot{ font-family:var(--body); font-size:13px; color:#fff; opacity:.9;
+  text-shadow:0 2px 6px rgba(0,0,0,.6); max-width:330px; }
+
+/* ---- BİTİŞ EKRANI: sonuç kartı ---- */
+.result-card{ width:min(430px,94vw); background:var(--paper); border-radius:26px; padding:18px 22px 20px;
+  box-shadow:0 26px 60px rgba(20,14,6,.5), 0 3px 0 rgba(255,255,255,.9) inset;
+  display:flex; flex-direction:column; align-items:center; gap:10px; }
+.stars{ display:flex; align-items:center; gap:8px; margin-top:-6px; }
+.stars i{ font-style:normal; font-size:34px; color:#dfd3bb; text-shadow:0 2px 0 rgba(0,0,0,.10); transition:.25s; }
+.stars i.big{ font-size:46px; }
+.stars i.on{ color:var(--sun); text-shadow:0 3px 0 var(--sun-dk), 0 0 18px rgba(255,193,74,.75); }
+.result-title{ font-family:var(--hud); font-weight:700; font-size:30px; line-height:1.05; color:var(--ink); }
+.result-msg{ font-family:var(--body); font-size:14px; line-height:1.5; color:#6b5b45; max-width:330px; }
+
+.score-panel{ width:100%; background:linear-gradient(180deg,#fdf1d8,#f7e6c4); border-radius:18px;
+  padding:12px 14px 14px; box-shadow:0 2px 0 rgba(255,255,255,.7) inset; }
+.score-lab{ font-family:var(--hud); font-weight:600; letter-spacing:.20em; font-size:11px; color:#8a7250; }
+.score-big{ font-family:var(--hud); font-weight:700; font-size:56px; line-height:1; color:var(--sun-dk);
+  text-shadow:0 2px 0 rgba(255,255,255,.85); }
+.score-sub{ display:flex; align-items:center; justify-content:center; gap:16px; margin-top:8px; }
+.score-sub div{ display:flex; flex-direction:column; }
+.score-sub b{ font-family:var(--hud); font-weight:700; font-size:21px; color:var(--ink); line-height:1; }
+.score-sub span{ font-size:10px; letter-spacing:.12em; color:#8a7250; margin-top:3px; }
+.score-sub .sep{ width:1px; height:28px; background:rgba(150,110,60,.28); }
+
+.lb-box{ width:100%; text-align:left; background:#fffaf0; border:1px solid rgba(150,110,60,.20);
+  border-radius:16px; padding:12px 14px; }
+.lb-box h5{ font-family:var(--hud); font-weight:600; letter-spacing:.14em; font-size:12px;
+  color:#8a7250; margin-bottom:8px; text-align:center; }
+.lb-row{ display:flex; align-items:center; gap:10px; font-size:13.5px; padding:6px 0;
+  border-bottom:1px solid rgba(150,110,60,.14); }
+.lb-row:last-child{ border-bottom:none; }
+.lb-row .rk{ font-family:var(--hud); font-weight:700; width:18px; color:#a8916d; }
+.lb-row .nm{ flex:1; color:#4a3c28; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lb-row .sc{ font-family:var(--hud); font-weight:700; color:var(--sun-dk); }
+.lb-row.me{ background:#fdeec9; border-radius:9px; padding:6px 9px; border:none; }
+.lb-row.me .nm{ color:var(--ink); font-weight:800; }
+
+/* ================= SORU EKRANI =================
+   Oyunun sıcak, boyalı sokak diline uyumlu: krem kâğıt, yumuşak sıcak
+   gölgeler, tok kırmızı/yeşil butonlar. Koyu "siber panel" kaldırıldı. */
+.q-overlay{ position:fixed; inset:0; z-index:8; display:grid; place-items:center; padding:20px;
+  background:radial-gradient(120% 90% at 50% 0%, rgba(18,42,74,.42), rgba(12,28,50,.62));
+  backdrop-filter:blur(2px); }
+.q-inner{ width:min(600px,96vw); display:flex; flex-direction:column; gap:16px; animation:qIn .32s cubic-bezier(.2,.9,.25,1); }
+@keyframes qIn{ from{ opacity:0; transform:translateY(22px) scale(.96);} to{ opacity:1; transform:none; } }
+.q-head{ text-align:center; font-family:var(--hud); font-weight:700; letter-spacing:.16em; font-size:14px;
+  color:#fff7e2; text-shadow:0 2px 10px rgba(0,0,0,.55); }
+
+/* E-posta: gerçek bir posta kutusundaki ileti gibi görünmeli →
+   oyunun yuvarlak başlık yazısı DEĞİL, nötr sistem yazı tipi kullanılır. */
+.mail, .mail *{ font-family:var(--mailfont); }
+.mail{ background:#fffdf6; color:#2b2114; border-radius:18px; overflow:hidden;
+  border:1px solid rgba(120,86,44,.18);
+  box-shadow:0 22px 46px rgba(30,20,10,.42), 0 2px 0 rgba(255,255,255,.9) inset; }
+.mail .mh{ display:flex; align-items:center; gap:11px; padding:14px 18px;
+  background:linear-gradient(180deg,#fdf1d8,#f7e6c4); border-bottom:1px solid rgba(150,110,60,.22); }
+.mail .av{ width:38px; height:38px; border-radius:11px; flex:none; display:grid; place-items:center;
+  font-weight:700; color:#fff; font-size:15px; box-shadow:0 3px 8px rgba(60,40,20,.28); }
+.mail .from{ flex:1; min-width:0; }
+.mail .from .name{ font-weight:700; font-size:14.5px; color:#3a2a17; }
+.mail .from .addr{ font-size:12.5px; color:#8a7250; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mail .when{ font-size:11px; color:#a8916d; flex:none; }
+.mail .mb{ padding:16px 20px 18px; }
+.mail .subj{ font-weight:800; font-size:17.5px; margin-bottom:10px; color:#2b2114; }
+.mail .text{ font-size:14.5px; line-height:1.62; color:#4a3c28; white-space:pre-line; }
+.mail .link{ display:inline-block; margin-top:12px; color:#0f6fd6; font-size:13.5px; word-break:break-all; text-decoration:underline; }
+.mail .attach{ display:inline-flex; align-items:center; gap:8px; margin-top:12px;
+  background:#f4ead6; border:1px solid rgba(150,110,60,.28); border-radius:10px; padding:8px 12px; font-size:13px; color:#4a3c28; }
+
+/* Karar butonları: tok, dokunmatik dostu, sokak paletiyle uyumlu */
+.zones{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.zone{ border-radius:18px; padding:16px; display:flex; align-items:center; justify-content:center; gap:13px;
+  cursor:pointer; border:none; min-height:92px; text-align:left; font-family:var(--body); color:#fff;
+  transition:transform .1s, box-shadow .15s, filter .15s; }
+.zone:active{ transform:translateY(3px) scale(.985); }
+.zone .zi{ width:40px; height:40px; flex:none; filter:drop-shadow(0 2px 3px rgba(0,0,0,.28)); }
+.zone .zt{ font-family:var(--hud); font-weight:700; letter-spacing:.06em; font-size:23px; line-height:1;
+  text-shadow:0 2px 4px rgba(0,0,0,.28); }
+.zone .zs{ font-size:11.5px; opacity:.92; margin-top:3px; }
+.zone.safe{ background:linear-gradient(180deg,#4fbf62,#2f9445);
+  box-shadow:0 7px 0 #227033, 0 16px 30px rgba(34,112,51,.38); }
+.zone.safe:hover{ filter:brightness(1.06); }
+.zone.safe:active{ box-shadow:0 4px 0 #227033, 0 10px 20px rgba(34,112,51,.34); }
+.zone.danger{ background:linear-gradient(180deg,#e8564e,#c62f2c);
+  box-shadow:0 7px 0 #8f2220, 0 16px 30px rgba(143,34,32,.38); }
+.zone.danger:hover{ filter:brightness(1.06); }
+.zone.danger:active{ box-shadow:0 4px 0 #8f2220, 0 10px 20px rgba(143,34,32,.34); }
+
+/* ================= GERİ BİLDİRİM ================= */
+.flash{ position:fixed; inset:0; z-index:20; display:grid; place-items:center; pointer-events:none; opacity:0; transition:opacity .15s; padding:20px; }
+.flash.show{ opacity:1; }
+.flash .fcard{ transform:translateY(12px) scale(.95); transition:transform .28s cubic-bezier(.2,.9,.25,1);
+  background:#fffdf6; border:1px solid rgba(120,86,44,.18); border-radius:20px; padding:22px 30px; max-width:520px;
+  text-align:center; box-shadow:0 26px 54px rgba(30,20,10,.45), 0 2px 0 rgba(255,255,255,.9) inset; }
+.flash.show .fcard{ transform:none; }
+.flash .ftag{ font-family:var(--hud); font-weight:700; letter-spacing:.08em; font-size:31px; }
+.flash .ftag.ok{ color:#2f9445; } .flash .ftag.no{ color:#c62f2c; }
+.flash .fwhy{ color:#4a3c28; font-size:14.5px; margin-top:8px; line-height:1.55; }
+.flash .fpts{ font-family:var(--hud); font-weight:700; font-size:17px; margin-top:8px; }
+
+@media (max-width:560px){ .zones{ grid-template-columns:1fr; } .end-stats{ gap:16px; } }

@@ -16,13 +16,12 @@
 /* Oyun SORU SAYISIYLA değil CANLA biter: oyuncu 3 canla başlar, doğru cevap
    can kazandırır, yanlış ve kaçırılan soru can götürür. Sorular bitmez —
    havuz tükenince yeniden karılır (bkz. sonrakiSoru).                     */
+/* CAN GERİ GELMEZ. 3 canla başlanır, kazanma yolu yoktur — oyun ilerledikçe
+   sadece azalır. (Bir ara "3 doğru üst üste = +1 can" vardı; oyunun bitmesini
+   imkânsızlaştırdığı için kaldırıldı.) */
 const START_LIVES = 3, MAX_LIVES = 3;
-/* Can kazanmak HAK EDİLMELİ: her doğruda değil, üst üste 3 doğruda +1 can
-   (ve en fazla 3'e kadar). Her doğru can verseydi canlar anlamını yitirir,
-   oyun da kioskta bitmek bilmezdi — ölçüldü: %75 isabetle 23 cana çıkıyordu. */
-const HEAL_STREAK = 3;
-/* Kaçırmak refleks hatası, kanmak bilgi hatası → kaçırmanın puan cezası daha
-   hafif. İkisi de bir can götürür.                                          */
+/* Can YALNIZCA yanlış cevapta gider: oyunun konusu oltalamayı tanımak.
+   Soruyu kaçırmak (refleks hatası) ve engele çarpmak sadece puan götürür. */
 const PTS_CORRECT = 100, PTS_WRONG = -40, PTS_MISS = -20, STREAK_BONUS = 20;
 
 // E-posta havuzu (Cyber Shield içeriği). safe:true => güvenli. why => açıklama.
@@ -110,11 +109,20 @@ const plane = { bob:0, lane:0, laneVis:0, bank:0, jumpY:0, jumpV:0 };   // lane:
    (drawFlowingScenery `worldScroll*1.15` kullanıyor, worldScroll ise dt*1.6
    artıyor → saniyede 1.84 birim.) Tek yerden tanımlı ki asla kaymasın. */
 const FLOW_SPEED = 1.6 * 1.15;
-/* Oyun ilerledikçe hızlanır. speedMul zemin, engel, zarf ve koşu
-   animasyonuna AYNI ANDA uygulanır — yoksa katmanlar birbirinden kopar.
-   ~35 saniyede en yüksek hıza ulaşır (%75 daha hızlı).                  */
-let speedMul = 1, playTime = 0;
-const SPEED_RAMP = 0.021, SPEED_MAX = 1.75;
+/* ================= ZORLUK =================
+   Tek bir `zorluk` değeri (0 → 1) her şeyi sürüklüyor: hız, engel sıklığı
+   ve çift engel ihtimali. Böylece zorluğu ayarlamak için tek yere bakılır.
+
+   Neden bu kadar sert: önceki ayar 35 saniyede %75'te tavan yapıyordu ve
+   oyuncu hızlanmayı HİÇ hissetmiyordu. Artık 95 saniye boyunca kesintisiz
+   tırmanıp %170'e çıkıyor; her an bir öncekinden farklı.
+
+   speedMul zemin, engel, zarf ve koşu animasyonuna AYNI ANDA uygulanır —
+   yoksa katmanlar birbirinden kopar.                                     */
+const ZORLUK_SURE = 95;                 // sn: en yüksek zorluğa ulaşma süresi
+const SPEED_MAX = 2.7;                  // başlangıç hızının katı
+const ARA_DARALMA = 0.30;               // engeller arası mesafe en fazla %30 kısalır
+let speedMul = 1, playTime = 0, zorluk = 0;
 const obstacles = [];
 let obsTimer = 2.2, hitCool = 0, shake = 0;
 /* Aynı şeritte üst üste yığılma olmasın: son iki seçim aynı şeritse
@@ -408,6 +416,14 @@ const JUMP_PEAK = (JUMP_V0*JUMP_V0)/(2*GRAVITY);   // tepe yüksekliği (px)
 function doJump(){
   if(state==='flying' && plane.jumpY <= 0){ plane.jumpV = JUMP_V0; }
 }
+/* Hızlı iniş (Subway Surfers'daki gibi): havadayken aşağı kaydırınca ya da
+   aşağı ok/S ile zıplama kesilir, karakter yola çakılır. Takla yok — sadece
+   iniş. Zıplamayı erken bitirebilmek gerçek bir beceri: yanlış zamanda
+   zıplayan oyuncu kendini kurtarabiliyor.                                */
+const DROP_V = -1150;          // aşağı hız (yerçekiminden bağımsız, ani)
+function doDrop(){
+  if(state==='flying' && plane.jumpY > 0) plane.jumpV = Math.min(plane.jumpV, DROP_V);
+}
 let swX=null, swY=null;
 canvas.addEventListener('pointerdown', e=>{ swX=e.clientX; swY=e.clientY; });
 canvas.addEventListener('pointerup', e=>{
@@ -416,7 +432,8 @@ canvas.addEventListener('pointerup', e=>{
   if(Math.abs(dx) > Math.abs(dy)){
     if(Math.abs(dx) > 26){ dx>0 ? goRight() : goLeft(); }          // yana kaydır
   } else {
-    if(dy < -26) doJump();                                          // yukarı kaydır = zıpla
+    if(dy < -26)      doJump();                                     // yukarı kaydır = zıpla
+    else if(dy > 26)  doDrop();                                     // aşağı kaydır = hızlı in
   }
   swX=swY=null;
 });
@@ -424,6 +441,7 @@ window.addEventListener('keydown', e=>{
   if(e.key==='ArrowLeft'  || e.key==='a') goLeft();
   if(e.key==='ArrowRight' || e.key==='d') goRight();
   if(e.key==='ArrowUp' || e.key===' ' || e.key==='w'){ e.preventDefault(); doJump(); }
+  if(e.key==='ArrowDown' || e.key==='s'){ e.preventDefault(); doDrop(); }
 });
 
 // Yol perspektifi: görseldeki gerçek yola göre kaçış (uzak) ve yakın noktalar.
@@ -1093,20 +1111,45 @@ function updateObstacles(dt){
       if(!atlandi){ o.done = true; hitObstacle(); }
     }
   }
-  // Yeni engel üret — sorunun geldiği şeridi kapatma (oyuncu çaresiz kalmasın)
   if(!types.length) return;
   obsTimer -= dt;
   if(obsTimer <= 0){
     /* Hız arttıkça bekleme süresini kısaltıyoruz: böylece engeller arasındaki
        DÜNYA mesafesi sabit kalır (yoksa hızlandıkça seyrekleşip kolaylaşırdı),
-       ama oyuncuya kalan tepki süresi kısalır — istenen zorluk artışı budur. */
-    obsTimer = rand(1.9, 3.1) / speedMul;
-    const t = types[Math.floor(Math.random()*types.length)];
+       ama oyuncuya kalan tepki süresi kısalır. `zorluk` ayrıca mesafeyi de
+       kısaltıyor: oyun ilerledikçe engeller hem hızlı hem SIK geliyor.     */
+    obsTimer = rand(1.9, 3.1) * (1 - ARA_DARALMA*zorluk) / speedMul;
     const lane = pickLane();
-    // Zarfın geldiği şeridi kapatma (yüksek zarflarda bariyer zaten oraya konur)
-    if(token.active && !token.high && lane === token.lane && Math.abs(token.u - 13) < 3) return;
-    obstacles.push({ key:t.key, kind:t.kind, h:t.h, w:t.w, lane, u:14, done:false });
+    if(!engelKoy(lane, types)) return;
+    /* Zorluk yükseldikçe bazen İKİ şerit birden kapanır; üçüncü şerit her
+       zaman açık kalır, yani çaresiz durum oluşmaz. */
+    if(zorluk > 0.5 && Math.random() < 0.35*zorluk){
+      const digerleri = [-1,0,1].filter(l => l !== lane);
+      engelKoy(digerleri[Math.floor(Math.random()*digerleri.length)], types);
+    }
   }
+}
+
+/* Bir şeride engel koyar. Zarfa fazla yakınsa koymaz ve false döner —
+   oyuncunun ulaşamayacağı soru oluşmasın diye. */
+function engelKoy(lane, types){
+  if(!zarfaUygun(lane, 14)) return false;
+  const t = types[Math.floor(Math.random()*types.length)];
+  obstacles.push({ key:t.key, kind:t.kind, h:t.h, w:t.w, lane, u:14, done:false });
+  return true;
+}
+
+/* ---- Zarfın etrafındaki güvenli alan ----
+   Soru simgesiyle engel çok yakın doğduğunda oyuncu ikisini birden
+   halledemiyor ve kendi hatası olmadan soruyu kaçırıyordu. Kural:
+   AYNI şeritte zarfa 3 birimden, KOMŞU şeritte 1.3 birimden yakın engel
+   olmaz. (Yüksek zarfın altındaki bariyer bilerek konur, o ayrı.) */
+const ZARF_GUVENLI = 3.0, ZARF_GUVENLI_YAN = 1.3;
+function zarfaUygun(lane, u){
+  if(!token.active) return true;
+  const d = Math.abs(u - token.u);
+  if(lane === token.lane) return d >= ZARF_GUVENLI;
+  return d >= ZARF_GUVENLI_YAN;
 }
 
 function hitObstacle(){
@@ -1282,7 +1325,8 @@ function loop(now){
   if(state==='flying'){
     // Oyun ilerledikçe hızlanır (bkz. SPEED_* sabitleri)
     playTime += dt;
-    speedMul = Math.min(SPEED_MAX, 1 + playTime*SPEED_RAMP);
+    zorluk  = clamp(playTime/ZORLUK_SURE, 0, 1);
+    speedMul = 1 + (SPEED_MAX - 1) * zorluk;
     plane.bob += dt*7*speedMul; worldScroll += dt*1.6*speedMul;   // koşu + yol akışı
     plane.laneVis += (plane.lane - plane.laneVis) * Math.min(1, dt*12);  // şerit kaydır
     updateJump(dt);
@@ -1336,6 +1380,12 @@ function nextFlight(){
   token.u = TOKEN_SPAWN_U;
   token.lane = pickLane();
   token.active = true;
+  /* Zarf doğduğu anda etrafını temizle: o sırada akmakta olan engellerden
+     zarfa fazla yakın olanlar kaldırılır. Aksi halde zarf ulaşılamaz doğar
+     ve oyuncu kendi hatası olmadan soruyu kaçırırdı. */
+  for(let i = obstacles.length-1; i >= 0; i--){
+    if(!zarfaUygun(obstacles[i].lane, obstacles[i].u)) obstacles.splice(i,1);
+  }
   /* Soruların bir kısmı bir BARİYERİN üstünde gelir: oyuncu ancak engelin
      üstünden atlayarak o zarfı yakalayabilir. Bariyer zarfla aynı şerit ve
      aynı derinlikte doğar. */
@@ -1349,20 +1399,22 @@ function nextFlight(){
   $('#questionScreen').classList.add('hidden');
 }
 
-/* Kaçırılan soru: yanlış cevapla aynı bedel — bir can ve puan gider. */
+/* Kaçırılan soru CAN GÖTÜRMEZ, sadece puan. Soru ile engel bazen üst üste
+   geliyordu ve oyuncu kendi hatası olmadan can kaybediyordu; artık hem
+   zarfın etrafı temiz tutuluyor (bkz. zarfaUygun) hem de kaçırmanın bedeli
+   yalnızca puan. */
 function missQuestion(){
   const m = aktifSoru;
   total++;                       // doğruluk oranına yansısın
   streak = 0;
-  lives--;
   score = Math.max(0, score + PTS_MISS);
-  updateHud(-1);
+  updateHud();
   state = 'feedback';
   const f = $('#flash');
   $('#fTag').className = 'ftag no';
   $('#fTag').textContent = 'KAÇIRDIN ✕';
   $('#fWhy').textContent = (m.safe ? 'Bu e-posta güvenliydi. ' : 'Bu e-posta şüpheliydi. ') + m.why;
-  $('#fPts').textContent = PTS_MISS + ' puan  •  −1 can';
+  $('#fPts').textContent = PTS_MISS + ' puan';
   $('#fPts').style.color = 'var(--danger)';
   f.classList.add('show');
   setTimeout(()=>{ f.classList.remove('show'); sonrakiAdim(); }, 1700);
@@ -1402,30 +1454,27 @@ function decide(decision){
   const m = aktifSoru;
   const isCorrect = (decision==='safe') === m.safe;
   total++;
-  let delta, canKazandi = false;
+  let delta;
   if(isCorrect){
     correct++; streak++; bestStreak = Math.max(bestStreak, streak);
     delta = PTS_CORRECT + (streak>=3 ? STREAK_BONUS : 0);
-    // Üst üste 3 doğruda bir can — ve sadece eksik can varsa
-    if(streak % HEAL_STREAK === 0 && lives < MAX_LIVES){ lives++; canKazandi = true; }
   } else {
-    streak = 0; delta = PTS_WRONG; lives--;
+    streak = 0; delta = PTS_WRONG; lives--;      // can SADECE burada gider
   }
   score = Math.max(0, score+delta);
-  updateHud(isCorrect ? (canKazandi ? 1 : 0) : -1);
+  updateHud(isCorrect ? 0 : -1);
   $('#questionScreen').classList.add('hidden');
-  flash(isCorrect, m, delta, canKazandi);
+  flash(isCorrect, m, delta);
 }
 
-function flash(ok, m, delta, canKazandi){
+function flash(ok, m, delta){
   const f = $('#flash');
   $('#fTag').className = 'ftag '+(ok?'ok':'no');
   $('#fTag').textContent = ok ? 'DOĞRU KARAR ✓' : 'YANLIŞ ✕';
   const truth = m.safe ? 'Bu e-posta GÜVENLİ idi. ' : 'Bu e-posta ŞÜPHELİ idi. ';
   $('#fWhy').textContent = (ok?'':truth) + m.why;
-  /* Can satırı sadece gerçekten değiştiyse yazılır: her doğruda "+1 can"
-     yazıp can vermemek en kafa karıştırıcı şey olurdu. */
-  const canYazi = ok ? (canKazandi ? '  •  +1 can ❤' : '') : '  •  −1 can';
+  // Can satırı sadece yanlış cevapta yazılır — can başka türlü değişmiyor
+  const canYazi = ok ? '' : '  •  −1 can';
   $('#fPts').textContent = (delta>=0?'+':'')+delta+' puan' + canYazi
                          + (ok&&streak>=3?'  •  '+streak+'li seri! 🔥':'');
   $('#fPts').style.color = delta>=0 ? 'var(--safe)' : 'var(--danger)';

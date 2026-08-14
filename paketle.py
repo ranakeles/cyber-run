@@ -28,6 +28,7 @@ MAP = {
     "assets/bg_far.png":        ("bg_far.jpg",        "image/jpeg"),
     "assets/ground_tile.png":   ("ground_tile.jpg",   "image/jpeg"),
     "assets/home_page2.png":    ("home_page2.jpg",    "image/jpeg"),
+    "assets/enter_name.png":   ("enter_name.png",    "image/png"),   # isim ekranı (klavye dahil)
     "assets/end_page5.png":     ("end_page5.jpg",     "image/jpeg"),   # bitiş ekranı tasarımı
     "assets/wall_strip.png":    ("wall_strip.png",    "image/png"),
     "assets/wall_strip2.png":   ("wall_strip2.png",   "image/png"),

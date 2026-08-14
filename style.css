@@ -104,6 +104,33 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 /* Butonlar yan yana (end_page5'ten ölçüldü) */
 .end-home { left:9.85%;  width:37.51%; top:88.83%; height:4.66%; }
 .end-again{ left:50.18%; width:38.68%; top:88.77%; height:4.89%; }
+/* ================= İSİM GİRİŞİ =================
+   Tasarımın tamamı enter_name.png — klavye dahil GÖRSELDE çizili. Kod
+   yalnızca yazılan ismi kutuya yazıyor ve tuşların üstüne görünmez dokunma
+   alanları koyuyor. Koordinatlar görselden ölçüldü (bkz. script.js TUS_YERI);
+   görsel değişirse yeniden ölçülmeli.                                     */
+.name-stage{ position:relative; z-index:1; background-size:100% 100%; background-repeat:no-repeat;
+  filter:drop-shadow(0 10px 40px rgba(0,0,0,.5)); }
+/* Yazılan isim + yanıp sönen imleç. (Görselde çizili sabit bir imleç vardı,
+   PNG'den silindi; artık imleç yazının SONUNDA ve gerçekten yanıp sönüyor.) */
+.name-yazi{ position:absolute; left:13.48%; top:33.98%; width:74.02%; height:8.33%;
+  display:flex; align-items:center; padding-left:4.5%;
+  font-family:var(--hud); font-weight:700; font-size:2.3em; line-height:1;
+  color:#24406b; letter-spacing:.03em; white-space:nowrap; overflow:hidden; }
+.name-yazi .imlec{ flex:none; width:.09em; height:1.15em; margin-left:.07em;
+  background:#2b6fd8; border-radius:.03em;
+  animation:carBlink 1.05s steps(1,end) infinite; }
+@keyframes carBlink{ 0%,55%{ opacity:1 } 56%,100%{ opacity:0 } }
+/* BAŞLA görselde hep parlak; 2 harf yazılana kadar üstü soluklaşır */
+.name-kilit{ position:absolute; left:23.05%; top:45.31%; width:55.08%; height:11.07%;
+  border-radius:18%/45%; background:rgba(108,114,120,.55); pointer-events:none;
+  transition:opacity .25s ease; }
+.name-kilit.acik{ opacity:0; }
+/* Görseldeki tuşların üstündeki görünmez dokunma alanları */
+.tus-hit{ position:absolute; background:none; border:none; padding:0; cursor:pointer;
+  -webkit-tap-highlight-color:transparent; border-radius:16%; transition:background .08s; }
+.tus-hit:active{ background:rgba(0,0,0,.22); }
+
 /* ================= SORU EKRANI =================
    Oyunun sıcak, boyalı sokak diline uyumlu: krem kâğıt, yumuşak sıcak
    gölgeler, tok kırmızı/yeşil butonlar. Koyu "siber panel" kaldırıldı. */

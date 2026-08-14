@@ -35,6 +35,20 @@
   <button id="startBtn" class="home-hit" aria-label="Oyna"></button>
 </div>
 
+<!-- ================= İSİM GİRİŞİ =================
+     OYNA'ya basınca açılır, oyun bundan sonra başlar. Klavye kodla kurulur
+     (script.js KLAVYE dizisi) — tuşların basılma durumu ve Türkçe harfler
+     gerektiği için görsel olarak hazırlanamaz. -->
+<div id="nameScreen" class="overlay home hidden">
+  <img id="nameBg" class="home-bg" alt="" aria-hidden="true">
+  <div class="name-stage" id="nameStage">
+    <div class="name-yazi"><span id="nameText"></span><i class="imlec"></i></div>
+    <!-- BAŞLA görselde çizili; yeterli harf yazılmadan üstü soluklaştırılır -->
+    <div class="name-kilit" id="nameLock"></div>
+    <!-- Tuşların üstündeki görünmez dokunma alanları script'te üretilir -->
+  </div>
+</div>
+
 <!-- ================= SORU EKRANI (uçuş sırasında açılır) ================= -->
 <div id="questionScreen" class="q-overlay hidden">
   <div class="q-inner">

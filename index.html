@@ -39,13 +39,13 @@
      OYNA'ya basınca açılır, oyun bundan sonra başlar. Klavye kodla kurulur
      (script.js KLAVYE dizisi) — tuşların basılma durumu ve Türkçe harfler
      gerektiği için görsel olarak hazırlanamaz. -->
-<div id="nameScreen" class="overlay hidden">
-  <div class="name-card">
-    <div class="name-title">ADINI YAZ</div>
-    <div class="name-box"><span id="nameText"></span><i class="caret"></i></div>
-    <div class="name-hint" id="nameHint">En az 2 harf</div>
-    <div class="keyboard" id="keyboard"></div>
-    <button id="nameGo" class="name-go" disabled>BAŞLA</button>
+<div id="nameScreen" class="overlay home hidden">
+  <img id="nameBg" class="home-bg" alt="" aria-hidden="true">
+  <div class="name-stage" id="nameStage">
+    <div class="name-yazi" id="nameText"></div>
+    <!-- BAŞLA görselde çizili; yeterli harf yazılmadan üstü soluklaştırılır -->
+    <div class="name-kilit" id="nameLock"></div>
+    <!-- Tuşların üstündeki görünmez dokunma alanları script'te üretilir -->
   </div>
 </div>
 

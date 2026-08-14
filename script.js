@@ -372,6 +372,7 @@ function drawCover(img){
 
 const STAGE_AR = 941/1672;   // sokak görselinin oranı (~9:16). Sahne bu orana kilitli.
 const END_AR = 853/1844;     // bitiş ekranı tasarımının oranı (daha dar)
+const AD_AR  = 1024/1536;    // isim ekranı tasarımının oranı (daha geniş)
 function resize(){
   DPR = Math.min(window.devicePixelRatio||1, 2);
   // Pencereye sığan en büyük 9:16 dikey sahneyi hesapla (kırpma olmasın diye)
@@ -395,6 +396,14 @@ function resize(){
     if(ew/eh > END_AR) ew = eh*END_AR; else eh = ew/END_AR;
     es.style.width = ew+'px'; es.style.height = eh+'px';
     es.style.fontSize = (eh*0.02)+'px';
+  }
+  // İsim ekranı da kendi oranıyla: tuş alanları görselin üstüne birebir otursun
+  const ns = document.getElementById('nameStage');
+  if(ns){
+    let nw = window.innerWidth, nh = window.innerHeight;
+    if(nw/nh > AD_AR) nw = nh*AD_AR; else nh = nw/AD_AR;
+    ns.style.width = nw+'px'; ns.style.height = nh+'px';
+    ns.style.fontSize = (nh*0.02)+'px';
   }
   ctx.setTransform(DPR,0,0,DPR,0,0);
   // perspektif değerleri computePerspective() içinde hesaplanıyor
@@ -1492,43 +1501,53 @@ function flash(ok, m, delta){
    OYNA'ya basınca açılır; oyun ancak isim yazılıp BAŞLA'ya basılınca başlar.
    Kioskta fiziksel klavye olmayacağı için tuşlar sayfanın kendi klavyesi.
    Türkçe Q düzeni: Ğ Ü Ş İ Ö Ç dahil.                                    */
-const KLAVYE = [
-  ['Q','W','E','R','T','Y','U','I','O','P','Ğ','Ü'],
-  ['A','S','D','F','G','H','J','K','L','Ş','İ'],
-  ['Z','X','C','V','B','N','M','Ö','Ç']
-];
 const AD_MIN = 2, AD_MAX = 12;     // 12'den uzun isim skor tablosuna sığmıyor
 let yazilanAd = '';
 
+/* Klavye enter_name.png'nin İÇİNDE çizili. Aşağıdaki koordinatlar görselin
+   pikselleri taranarak ölçüldü (1024×1536 uzayında) ve yüzdeye çevrilerek
+   görünmez dokunma alanlarına dönüştürülüyor. Görsel değişirse yeniden
+   ölçülmeli. Shift / 123 / küre tuşları bilinçli olarak işlevsiz: isim
+   yalnızca büyük harf, rakam ve dil değişimine gerek yok.                */
+const AD_GORSEL_W = 1024, AD_GORSEL_H = 1536;
+const TUS_YERI = (()=>{
+  const liste = [];
+  const satir = (harfler, xler, y, w, h) =>
+    harfler.forEach((harf, i) => liste.push({ harf, x:xler[i], y, w, h }));
+  satir('QWERTYUIOPĞÜ'.split(''), [60,136,212,288,366,442,518,594,670,748,824,900], 910, 64, 80);
+  satir('ASDFGHJKLŞİ'.split(''),  [96,172,250,328,404,482,558,634,712,788,866],    1018, 64, 80);
+  satir('ZXCVBNMÖÇ'.split(''),    [178,254,330,408,484,560,636,712,788],           1128, 64, 84);
+  liste.push({ islev:'sil',   x:864, y:1128, w:108, h:84  });   // ⌫
+  liste.push({ harf:' ',      x:306, y:1242, w:414, h:78  });   // Boşluk
+  liste.push({ islev:'tamam', x:740, y:1242, w:232, h:78  });   // Tamam = BAŞLA
+  liste.push({ islev:'tamam', x:236, y:696,  w:564, h:170 });   // BAŞLA butonu
+  return liste;
+})();
+
 function klavyeKur(){
-  const kb = $('#keyboard');
-  if(!kb || kb.children.length) return;         // bir kez kurulur
-  for(const satir of KLAVYE){
-    const sr = document.createElement('div'); sr.className = 'kb-row';
-    for(const harf of satir){
-      const b = document.createElement('button');
-      b.className = 'kb-key'; b.type = 'button'; b.textContent = harf;
-      b.addEventListener('click', ()=> adYaz(harf));
-      sr.appendChild(b);
-    }
-    kb.appendChild(sr);
-  }
-  // Alt satır: boşluk + silme
-  const alt = document.createElement('div'); alt.className = 'kb-row';
-  for(const [etiket, islev] of [['BOŞLUK', ()=>adYaz(' ')], ['⌫ SİL', adSil]]){
+  const sahne = $('#nameStage');
+  if(!sahne || sahne.querySelector('.tus-hit')) return;      // bir kez kurulur
+  const yuzde = (v, tam) => (100*v/tam) + '%';
+  for(const t of TUS_YERI){
     const b = document.createElement('button');
-    b.className = 'kb-key wide'; b.type = 'button'; b.textContent = etiket;
-    b.addEventListener('click', islev);
-    alt.appendChild(b);
+    b.className = 'tus-hit'; b.type = 'button';
+    b.style.left   = yuzde(t.x, AD_GORSEL_W);
+    b.style.top    = yuzde(t.y, AD_GORSEL_H);
+    b.style.width  = yuzde(t.w, AD_GORSEL_W);
+    b.style.height = yuzde(t.h, AD_GORSEL_H);
+    b.setAttribute('aria-label', t.harf === ' ' ? 'Boşluk' : (t.harf || t.islev));
+    b.addEventListener('click',
+      t.islev === 'sil'   ? adSil :
+      t.islev === 'tamam' ? isimOnayla :
+                            ()=> adYaz(t.harf));
+    sahne.appendChild(b);
   }
-  kb.appendChild(alt);
 }
 
 function adGuncelle(){
   $('#nameText').textContent = yazilanAd;
   const yeterli = yazilanAd.trim().length >= AD_MIN;
-  $('#nameGo').disabled = !yeterli;
-  $('#nameHint').classList.toggle('dolu', yeterli);
+  $('#nameLock').classList.toggle('acik', yeterli);
 }
 function adYaz(harf){
   if(yazilanAd.length >= AD_MAX) return;
@@ -1611,9 +1630,8 @@ function endGame(){
 // Butonlar
 $('#zoneSafe').addEventListener('click', ()=> decide('safe'));
 $('#zoneDanger').addEventListener('click', ()=> decide('danger'));
-// OYNA → önce isim, sonra oyun
+// OYNA → önce isim, sonra oyun (BAŞLA/Tamam tuşları klavyeKur içinde bağlanır)
 $('#startBtn').addEventListener('click', isimEkraniAc);
-$('#nameGo').addEventListener('click', isimOnayla);
 /* TEKRAR DENE ismi korur: aynı çocuk yeniden oynuyor demektir. Sıradaki
    çocuk için ANA SAYFA'dan girilince isim yeniden sorulur. */
 $('#againBtn').addEventListener('click', startGame);
@@ -1637,6 +1655,11 @@ resize();
   const es = $('#endStage'), eb = $('#endBg');
   if(es) es.style.backgroundImage = 'url(' + son + ')';
   if(eb) eb.src = son;
+  // İsim ekranı tasarımı (klavye dahil görselin içinde)
+  const isim = assetURL('assets/enter_name.png');
+  const ns = $('#nameStage'), nb = $('#nameBg');
+  if(ns) ns.style.backgroundImage = 'url(' + isim + ')';
+  if(nb) nb.src = isim;
 }
 state = 'idle';
 lastTime = performance.now();

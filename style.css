@@ -105,49 +105,27 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 .end-home { left:9.85%;  width:37.51%; top:88.83%; height:4.66%; }
 .end-again{ left:50.18%; width:38.68%; top:88.77%; height:4.89%; }
 /* ================= İSİM GİRİŞİ =================
-   Oyunun sıcak sokak diline uyar: krem kâğıt, yumuşak sıcak gölge.
-   Klavye 12 tuşluk en geniş satıra göre ölçülenir; tuşlar dokunmatikte
-   rahat basılsın diye en az 40px. */
-.name-card{ width:min(560px,96vw); background:var(--paper); border-radius:24px;
-  padding:20px 18px 22px; display:flex; flex-direction:column; align-items:center; gap:12px;
-  box-shadow:0 26px 60px rgba(20,14,6,.5), 0 3px 0 rgba(255,255,255,.9) inset; }
-.name-title{ font-family:var(--hud); font-weight:700; letter-spacing:.14em; font-size:19px; color:var(--ink); }
-/* Yazılan isim: büyük ve net, yanında yanıp sönen imleç */
-.name-box{ width:100%; min-height:62px; background:linear-gradient(180deg,#fdf1d8,#f7e6c4);
-  border-radius:14px; border:2px solid rgba(150,110,60,.28);
-  display:flex; align-items:center; justify-content:center; gap:2px; padding:8px 14px;
-  font-family:var(--hud); font-weight:700; font-size:34px; line-height:1; color:var(--ink);
-  letter-spacing:.04em; overflow:hidden; }
-.name-box .caret{ width:3px; height:32px; background:var(--sun-dk); border-radius:2px;
-  animation:carBlink 1s steps(1,end) infinite; }
-@keyframes carBlink{ 0%,50%{ opacity:1 } 51%,100%{ opacity:0 } }
-.name-hint{ font-family:var(--body); font-size:12px; color:#8a7250; letter-spacing:.04em; }
-.name-hint.dolu{ opacity:0; }
-
-.keyboard{ width:100%; display:flex; flex-direction:column; gap:6px; }
-.kb-row{ display:flex; gap:5px; justify-content:center; }
-.kb-key{ flex:1 1 0; min-width:0; height:46px; border:none; border-radius:10px; cursor:pointer;
-  background:linear-gradient(180deg,#fffdf6,#f2e3c8); color:var(--ink);
-  font-family:var(--hud); font-weight:700; font-size:19px;
-  box-shadow:0 3px 0 rgba(150,110,60,.35); transition:transform .06s, box-shadow .06s; }
-.kb-key:active{ transform:translateY(3px); box-shadow:0 0 0 rgba(150,110,60,.35); }
-/* Silme ve boşluk tuşları harflerden geniş */
-.kb-key.wide{ flex:1.6 1 0; font-size:16px; background:linear-gradient(180deg,#f4e7cf,#e6d3b2); }
-
-.name-go{ width:100%; height:56px; border:none; border-radius:16px; cursor:pointer;
-  font-family:var(--hud); font-weight:700; letter-spacing:.10em; font-size:24px; color:#fff;
-  background:linear-gradient(180deg,#5fc76f,#3ea152); box-shadow:0 5px 0 #2c7a3d;
-  transition:transform .07s, box-shadow .07s, filter .2s; }
-.name-go:active{ transform:translateY(4px); box-shadow:0 1px 0 #2c7a3d; }
-/* Yeterli harf yazılmadan basılamaz — boş isim skor tablosunu bozar */
-.name-go:disabled{ filter:grayscale(.75) brightness(.9); opacity:.6; cursor:default;
-  transform:none; box-shadow:0 5px 0 #2c7a3d; }
-
-@media (max-height:700px){
-  .name-box{ min-height:52px; font-size:28px; }
-  .kb-key{ height:40px; font-size:17px; }
-  .name-go{ height:48px; font-size:21px; }
-}
+   Tasarımın tamamı enter_name.png — klavye dahil GÖRSELDE çizili. Kod
+   yalnızca yazılan ismi kutuya yazıyor ve tuşların üstüne görünmez dokunma
+   alanları koyuyor. Koordinatlar görselden ölçüldü (bkz. script.js TUS_YERI);
+   görsel değişirse yeniden ölçülmeli.                                     */
+.name-stage{ position:relative; z-index:1; background-size:100% 100%; background-repeat:no-repeat;
+  filter:drop-shadow(0 10px 40px rgba(0,0,0,.5)); }
+/* Yazılan isim. Kutunun solunda görselde ÇİZİLİ bir imleç var; yazı onun
+   sağından başlar, ayrıca imleç eklenmez (üst üste binerdi). */
+.name-yazi{ position:absolute; left:13.48%; top:33.98%; width:74.02%; height:8.33%;
+  display:flex; align-items:center; padding-left:7%;
+  font-family:var(--hud); font-weight:700; font-size:2.3em; line-height:1;
+  color:#24406b; letter-spacing:.03em; white-space:nowrap; overflow:hidden; }
+/* BAŞLA görselde hep parlak; 2 harf yazılana kadar üstü soluklaşır */
+.name-kilit{ position:absolute; left:23.05%; top:45.31%; width:55.08%; height:11.07%;
+  border-radius:18%/45%; background:rgba(108,114,120,.55); pointer-events:none;
+  transition:opacity .25s ease; }
+.name-kilit.acik{ opacity:0; }
+/* Görseldeki tuşların üstündeki görünmez dokunma alanları */
+.tus-hit{ position:absolute; background:none; border:none; padding:0; cursor:pointer;
+  -webkit-tap-highlight-color:transparent; border-radius:16%; transition:background .08s; }
+.tus-hit:active{ background:rgba(0,0,0,.22); }
 
 /* ================= SORU EKRANI =================
    Oyunun sıcak, boyalı sokak diline uyumlu: krem kâğıt, yumuşak sıcak

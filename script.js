@@ -61,9 +61,21 @@ const POOL = [
 /* ---------- 2) SKOR TABLOSU ---------- */
 /* Tablo BOŞ başlar. Önceden uydurma isimler (Can Uysal, Ayşe Yılmaz...)
    ekliydi; TEKNOFEST'te ilk oynayan çocuk kendini birinci sırada görsün ve
-   tabloda hiç oynamamış kişiler durmasın diye kaldırıldı.               */
-function loadLb(){ try{ const r=localStorage.getItem('cf_lb'); if(r) return JSON.parse(r); }catch(e){} return []; }
-function saveLb(lb){ try{ localStorage.setItem('cf_lb', JSON.stringify(lb)); }catch(e){} }
+   tabloda hiç oynamamış kişiler durmasın diye kaldırıldı.
+
+   DİKKAT: Kodda listeyi silmek yetmiyordu. O isimler ilk oyunda tarayıcıya
+   KAYDEDİLİYOR ve sonraki açılışlarda oradan okunuyordu; yani hem geliştirme
+   makinesinde hem kioskta tabloda durmaya devam ederlerdi. Depolama anahtarı
+   bu yüzden sürümlendi: yeni anahtar eski kaydı görmezden gelir, eski kayıt
+   da bir kereliğine silinir. İleride tablonun yapısı değişirse anahtarı
+   yine artır.                                                             */
+const LB_KEY = 'cf_lb2';
+function loadLb(){
+  try{ localStorage.removeItem('cf_lb'); }catch(e){}      // eski uydurma isimler
+  try{ const r = localStorage.getItem(LB_KEY); if(r) return JSON.parse(r); }catch(e){}
+  return [];
+}
+function saveLb(lb){ try{ localStorage.setItem(LB_KEY, JSON.stringify(lb)); }catch(e){} }
 let LB = loadLb();
 
 /* ---------- 3) DURUM ---------- */

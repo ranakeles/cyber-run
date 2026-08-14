@@ -91,6 +91,8 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
   display:flex; flex-direction:column; justify-content:space-evenly;
   padding:2.5% 5.5%; font-family:var(--hud); color:#1f3a63; }
 .lb-satir{ display:flex; align-items:center; gap:.5em; font-size:.95em; line-height:1; }
+/* Henüz dolmamış sıralar: yer kaplar ama görünmez (bkz. renderLb) */
+.lb-satir.bos{ visibility:hidden; }
 .lb-satir .rk{ width:1.6em; text-align:center; font-weight:700; color:#8a6f45; }
 .lb-satir .nm{ flex:1; text-align:left; font-weight:600; overflow:hidden;
   white-space:nowrap; text-overflow:ellipsis; }

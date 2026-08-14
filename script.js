@@ -59,12 +59,23 @@ const POOL = [
 ];
 
 /* ---------- 2) SKOR TABLOSU ---------- */
-const SEED_LB = [
-  {nm:"Can Uysal", sc:950}, {nm:"Ayşe Yılmaz", sc:870},
-  {nm:"Mehmet Kaya", sc:760}, {nm:"Elif Demir", sc:650}, {nm:"Burak Şahin", sc:540}
-];
-function loadLb(){ try{ const r=localStorage.getItem('cf_lb'); if(r) return JSON.parse(r); }catch(e){} return SEED_LB.slice(); }
-function saveLb(lb){ try{ localStorage.setItem('cf_lb', JSON.stringify(lb)); }catch(e){} }
+/* Tablo BOŞ başlar. Önceden uydurma isimler (Can Uysal, Ayşe Yılmaz...)
+   ekliydi; TEKNOFEST'te ilk oynayan çocuk kendini birinci sırada görsün ve
+   tabloda hiç oynamamış kişiler durmasın diye kaldırıldı.
+
+   DİKKAT: Kodda listeyi silmek yetmiyordu. O isimler ilk oyunda tarayıcıya
+   KAYDEDİLİYOR ve sonraki açılışlarda oradan okunuyordu; yani hem geliştirme
+   makinesinde hem kioskta tabloda durmaya devam ederlerdi. Depolama anahtarı
+   bu yüzden sürümlendi: yeni anahtar eski kaydı görmezden gelir, eski kayıt
+   da bir kereliğine silinir. İleride tablonun yapısı değişirse anahtarı
+   yine artır.                                                             */
+const LB_KEY = 'cf_lb2';
+function loadLb(){
+  try{ localStorage.removeItem('cf_lb'); }catch(e){}      // eski uydurma isimler
+  try{ const r = localStorage.getItem(LB_KEY); if(r) return JSON.parse(r); }catch(e){}
+  return [];
+}
+function saveLb(lb){ try{ localStorage.setItem(LB_KEY, JSON.stringify(lb)); }catch(e){} }
 let LB = loadLb();
 
 /* ---------- 3) DURUM ---------- */
@@ -1597,10 +1608,17 @@ function renderLb(target, kayit, sira){
   const sirali = LB.slice().sort((a,b)=>b.sc-a.sc);
   const satirlar = sirali.slice(0, LB_SATIR).map((r,i)=>({ r, i }));
   if(sira >= LB_SATIR) satirlar.push({ r:kayit, i:sira });
-  $(target).innerHTML = satirlar.map(({r,i}) =>
+  let html = satirlar.map(({r,i}) =>
     `<div class="lb-satir ${r===kayit?'ben':''}">` +
       `<div class="rk">${i+1}</div><div class="nm">${r.nm}</div><div class="sc">${r.sc}</div>` +
     `</div>`).join('');
+  /* Tablo boş başladığı için ilk oyunlarda tek satır kalıyor; satırlar
+     panele eşit dağıtıldığından o tek satır ortada asılı duruyordu.
+     Boş satırlarla tamamlayınca gerçek satırlar yukarıdan başlıyor —
+     yeni açılmış bir skor tablosu gibi görünüyor.                      */
+  const eksik = Math.max(0, LB_SATIR - satirlar.length);
+  html += `<div class="lb-satir bos">&nbsp;</div>`.repeat(eksik);
+  $(target).innerHTML = html;
 }
 
 /* Bitiş ekranı: tasarımın kendisi görselde (başlık, ikonlar, butonlar).

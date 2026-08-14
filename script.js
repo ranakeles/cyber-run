@@ -1632,15 +1632,19 @@ $('#zoneSafe').addEventListener('click', ()=> decide('safe'));
 $('#zoneDanger').addEventListener('click', ()=> decide('danger'));
 // OYNA → önce isim, sonra oyun (BAŞLA/Tamam tuşları klavyeKur içinde bağlanır)
 $('#startBtn').addEventListener('click', isimEkraniAc);
-/* TEKRAR DENE ismi korur: aynı çocuk yeniden oynuyor demektir. Sıradaki
-   çocuk için ANA SAYFA'dan girilince isim yeniden sorulur. */
-$('#againBtn').addEventListener('click', startGame);
-// Görseldeki "ANA SAYFA" butonu: başlangıç ekranına dön (sahne arkada akmaya devam eder)
-$('#homeBtn').addEventListener('click', ()=>{
+/* Bitiş ekranındaki İKİ buton da başlangıç ekranına döner.
+   Kioskta sıradaki çocuk doğal olarak "TEKRAR DENE"ye basıyor; oradan
+   doğrudan oyun başlasaydı bir önceki çocuğun adıyla oynardı ve skor
+   tablosu yanlış isimlerle dolardı. Artık her oyun mutlaka
+   başlangıç → isim → oyun sırasından geçiyor.                          */
+function anaSayfayaDon(){
   $('#endScreen').classList.add('hidden');
+  $('#nameScreen').classList.add('hidden');
   $('#startScreen').classList.remove('hidden');
   state = 'idle';
-});
+}
+$('#againBtn').addEventListener('click', anaSayfayaDon);
+$('#homeBtn').addEventListener('click', anaSayfayaDon);
 
 /* ---- Açılış: başlangıç ekranının ARKASINDA sahne canlı aksın (attract mod) ---- */
 resize();

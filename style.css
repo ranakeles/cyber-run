@@ -134,55 +134,39 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 .tus-hit:active{ background:rgba(0,0,0,.22); }
 
 /* ================= SORU EKRANI =================
-   Oyunun sıcak, boyalı sokak diline uyumlu: krem kâğıt, yumuşak sıcak
-   gölgeler, tok kırmızı/yeşil butonlar. Koyu "siber panel" kaldırıldı. */
-.q-overlay{ position:fixed; inset:0; z-index:8; display:grid; place-items:center; padding:20px;
-  background:radial-gradient(120% 90% at 50% 0%, rgba(18,42,74,.42), rgba(12,28,50,.62));
+   Kartın tamamı ve GÜVENLİ/ŞÜPHELİ butonları GÖRSELDE çizili:
+   mail_body.png (eksiz) ve mail_file.png (dosya ekli). Kod yalnızca
+   metinleri yerleştirir; kutuların yeri script'teki MAIL_YERI tablosundan
+   inline stil olarak gelir (iki görselin oranı ve bölgeleri farklı).
+
+   E-posta metni bilerek NÖTR sistem yazı tipiyle yazılır: oyunun yuvarlak
+   başlık fontuyla yazılsa gerçek bir postaya benzemez ve tuzakları fark
+   etmek zorlaşır.                                                        */
+.q-overlay{ position:fixed; inset:0; z-index:8; display:grid; place-items:center; padding:16px;
+  background:radial-gradient(120% 90% at 50% 0%, rgba(18,42,74,.42), rgba(12,28,50,.66));
   backdrop-filter:blur(2px); }
-.q-inner{ width:min(600px,96vw); display:flex; flex-direction:column; gap:16px; animation:qIn .32s cubic-bezier(.2,.9,.25,1); }
-@keyframes qIn{ from{ opacity:0; transform:translateY(22px) scale(.96);} to{ opacity:1; transform:none; } }
-.q-head{ text-align:center; font-family:var(--hud); font-weight:700; letter-spacing:.16em; font-size:14px;
-  color:#fff7e2; text-shadow:0 2px 10px rgba(0,0,0,.55); }
-
-/* E-posta: gerçek bir posta kutusundaki ileti gibi görünmeli →
-   oyunun yuvarlak başlık yazısı DEĞİL, nötr sistem yazı tipi kullanılır. */
-.mail, .mail *{ font-family:var(--mailfont); }
-.mail{ background:#fffdf6; color:#2b2114; border-radius:18px; overflow:hidden;
-  border:1px solid rgba(120,86,44,.18);
-  box-shadow:0 22px 46px rgba(30,20,10,.42), 0 2px 0 rgba(255,255,255,.9) inset; }
-.mail .mh{ display:flex; align-items:center; gap:11px; padding:14px 18px;
-  background:linear-gradient(180deg,#fdf1d8,#f7e6c4); border-bottom:1px solid rgba(150,110,60,.22); }
-.mail .av{ width:38px; height:38px; border-radius:11px; flex:none; display:grid; place-items:center;
-  font-weight:700; color:#fff; font-size:15px; box-shadow:0 3px 8px rgba(60,40,20,.28); }
-.mail .from{ flex:1; min-width:0; }
-.mail .from .name{ font-weight:700; font-size:14.5px; color:#3a2a17; }
-.mail .from .addr{ font-size:12.5px; color:#8a7250; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.mail .when{ font-size:11px; color:#a8916d; flex:none; }
-.mail .mb{ padding:16px 20px 18px; }
-.mail .subj{ font-weight:800; font-size:17.5px; margin-bottom:10px; color:#2b2114; }
-.mail .text{ font-size:14.5px; line-height:1.62; color:#4a3c28; white-space:pre-line; }
-.mail .link{ display:inline-block; margin-top:12px; color:#0f6fd6; font-size:13.5px; word-break:break-all; text-decoration:underline; }
-.mail .attach{ display:inline-flex; align-items:center; gap:8px; margin-top:12px;
-  background:#f4ead6; border:1px solid rgba(150,110,60,.28); border-radius:10px; padding:8px 12px; font-size:13px; color:#4a3c28; }
-
-/* Karar butonları: tok, dokunmatik dostu, sokak paletiyle uyumlu */
-.zones{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-.zone{ border-radius:18px; padding:16px; display:flex; align-items:center; justify-content:center; gap:13px;
-  cursor:pointer; border:none; min-height:92px; text-align:left; font-family:var(--body); color:#fff;
-  transition:transform .1s, box-shadow .15s, filter .15s; }
-.zone:active{ transform:translateY(3px) scale(.985); }
-.zone .zi{ width:40px; height:40px; flex:none; filter:drop-shadow(0 2px 3px rgba(0,0,0,.28)); }
-.zone .zt{ font-family:var(--hud); font-weight:700; letter-spacing:.06em; font-size:23px; line-height:1;
-  text-shadow:0 2px 4px rgba(0,0,0,.28); }
-.zone .zs{ font-size:11.5px; opacity:.92; margin-top:3px; }
-.zone.safe{ background:linear-gradient(180deg,#4fbf62,#2f9445);
-  box-shadow:0 7px 0 #227033, 0 16px 30px rgba(34,112,51,.38); }
-.zone.safe:hover{ filter:brightness(1.06); }
-.zone.safe:active{ box-shadow:0 4px 0 #227033, 0 10px 20px rgba(34,112,51,.34); }
-.zone.danger{ background:linear-gradient(180deg,#e8564e,#c62f2c);
-  box-shadow:0 7px 0 #8f2220, 0 16px 30px rgba(143,34,32,.38); }
-.zone.danger:hover{ filter:brightness(1.06); }
-.zone.danger:active{ box-shadow:0 4px 0 #8f2220, 0 10px 20px rgba(143,34,32,.34); }
+.mail-stage{ position:relative; background-size:100% 100%; background-repeat:no-repeat;
+  animation:qIn .3s cubic-bezier(.2,.9,.25,1);
+  filter:drop-shadow(0 14px 40px rgba(0,0,0,.45)); }
+@keyframes qIn{ from{ opacity:0; transform:translateY(20px) scale(.96);} to{ opacity:1; transform:none; } }
+.mail-stage > div{ position:absolute; font-family:var(--mailfont); color:#2b2114; }
+.mail-ust{ display:flex; flex-direction:column; justify-content:center; gap:.15em; overflow:hidden; }
+.mail-kim{ font-weight:700; font-size:1.05em; line-height:1.15;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mail-adres{ font-size:.86em; color:#8a7250; line-height:1.15;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mail-govde{ display:flex; flex-direction:column; overflow:hidden; }
+.mail-govde .konu{ font-weight:800; font-size:1.06em; line-height:1.25; margin-bottom:.5em; }
+.mail-govde .metin{ font-size:.92em; line-height:1.5; color:#4a3c28; white-space:pre-line; }
+/* Oltalama bağlantısı gerçek postadaki gibi mavi ve altı çizili */
+.mail-govde .baglanti{ margin-top:.55em; color:#0f6fd6; text-decoration:underline;
+  font-size:.9em; word-break:break-all; }
+.mail-ek{ display:flex; align-items:center; font-size:.92em; font-weight:600;
+  color:#2f4a7a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* Görseldeki butonların üstündeki görünmez dokunma alanları */
+.mail-hit{ position:absolute; background:none; border:none; padding:0; cursor:pointer;
+  -webkit-tap-highlight-color:transparent; border-radius:999px; transition:background .08s; }
+.mail-hit:active{ background:rgba(0,0,0,.18); }
 
 /* ================= GERİ BİLDİRİM ================= */
 .flash{ position:fixed; inset:0; z-index:20; display:grid; place-items:center; pointer-events:none; opacity:0; transition:opacity .15s; padding:20px; }

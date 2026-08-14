@@ -28,6 +28,8 @@ MAP = {
     "assets/bg_far.png":        ("bg_far.jpg",        "image/jpeg"),
     "assets/ground_tile.png":   ("ground_tile.jpg",   "image/jpeg"),
     "assets/home_page2.png":    ("home_page2.jpg",    "image/jpeg"),
+    "assets/mail_body.png":    ("mail_body.png",    "image/png"),   # e-posta kartı (eksiz)
+    "assets/mail_file.png":    ("mail_file.png",    "image/png"),   # e-posta kartı (dosya ekli)
     "assets/enter_name.png":   ("enter_name.png",    "image/png"),   # isim ekranı (klavye dahil)
     "assets/end_page5.png":     ("end_page5.jpg",     "image/jpeg"),   # bitiş ekranı tasarımı
     "assets/wall_strip.png":    ("wall_strip.png",    "image/png"),

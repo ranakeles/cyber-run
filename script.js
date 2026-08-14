@@ -408,6 +408,7 @@ function resize(){
     es.style.width = ew+'px'; es.style.height = eh+'px';
     es.style.fontSize = (eh*0.02)+'px';
   }
+  mailBoyutla();          // e-posta kartı da pencereyle birlikte ölçeklensin
   // İsim ekranı da kendi oranıyla: tuş alanları görselin üstüne birebir otursun
   const ns = document.getElementById('nameStage');
   if(ns){
@@ -1451,26 +1452,82 @@ function sonrakiAdim(){
   if(lives <= 0) endGame(); else nextFlight();
 }
 
+/* ---- E-posta kartı: tamamı görselde çizili ----
+   İki tasarım var; dosya eki olan e-postalar için ekli olan kullanılır.
+   Aşağıdaki kutular görsellerin pikselleri taranarak ÖLÇÜLDÜ (kendi
+   piksel uzaylarında). Görseller değişirse yeniden ölçülmeli.          */
+const MAIL_YERI = {
+  yalin: { src:'assets/mail_body.png', W:1312, H:1199,
+    ust:     {x:300, y:120,  w:940,  h:170},
+    govde:   {x:88,  y:330,  w:1140, h:285},
+    guvenli: {x:30,  y:688,  w:1249, h:208},
+    supheli: {x:25,  y:923,  w:1258, h:209} },
+  ekli:  { src:'assets/mail_file.png', W:1122, H:1402,
+    ust:     {x:280, y:155,  w:750,  h:140},
+    govde:   {x:100, y:340,  w:920,  h:300},
+    ek:      {x:285, y:690,  w:560,  h:100},
+    guvenli: {x:79,  y:915,  w:964,  h:179},
+    supheli: {x:78,  y:1120, w:966,  h:179} }
+};
+let mailOran = MAIL_YERI.yalin.W / MAIL_YERI.yalin.H;
+
+/* Kart pencereye sığan en büyük hâlini alır; yazı boyu da kartın
+   yüksekliğine bağlı, yani kart büyüdükçe yazı da büyür. */
+function mailBoyutla(){
+  const s = $('#mailStage'); if(!s) return;
+  let w = window.innerWidth - 32, h = window.innerHeight - 32;
+  if(w/h > mailOran) w = h*mailOran; else h = w/mailOran;
+  s.style.width = w+'px'; s.style.height = h+'px';
+  s.style.fontSize = (h*0.032)+'px';
+}
+
+function mailSahnesiKur(ekliMi){
+  const y = ekliMi ? MAIL_YERI.ekli : MAIL_YERI.yalin;
+  const s = $('#mailStage');
+  s.style.backgroundImage = 'url(' + assetURL(y.src) + ')';
+  const yerlestir = (el, r) => {
+    if(!el) return;
+    if(!r){ el.style.display = 'none'; return; }
+    el.style.display = '';
+    el.style.left   = (100*r.x/y.W) + '%';
+    el.style.top    = (100*r.y/y.H) + '%';
+    el.style.width  = (100*r.w/y.W) + '%';
+    el.style.height = (100*r.h/y.H) + '%';
+  };
+  yerlestir($('#qHead'),     y.ust);
+  yerlestir($('#qBody'),     y.govde);
+  yerlestir($('#qAttach'),   y.ek);
+  yerlestir($('#zoneSafe'),  y.guvenli);
+  yerlestir($('#zoneDanger'),y.supheli);
+  mailOran = y.W / y.H;
+  mailBoyutla();
+}
+
+/* Uzun e-postalar kutuyu taşırmasın: sığana kadar yazıyı küçült.
+   (Havuz büyüdüğünde farklı uzunlukta metinler gelecek.) */
+function govdeSigdir(){
+  const kutu = $('#qBody'); if(!kutu) return;
+  kutu.style.fontSize = '';
+  let boy = 1;
+  for(let i = 0; i < 14 && kutu.scrollHeight > kutu.clientHeight + 1; i++){
+    boy -= 0.05;
+    kutu.style.fontSize = boy + 'em';
+  }
+}
+
 // Kontrol noktasına varınca soruyu aç
 function openQuestion(){
   state = 'question';
   const m = aktifSoru;
-  const linkHtml = m.link ? `<div class="link">${m.link}</div>` : '';
-  const attachHtml = m.attach ? `<div class="attach">📎 ${m.attach}</div>` : '';
-  $('#stage').innerHTML = `
-    <div class="mail">
-      <div class="mh">
-        <div class="av" style="background:${m.c}">${initials(m.from)}</div>
-        <div class="from"><div class="name">${m.from}</div><div class="addr">${m.addr}</div></div>
-        <div class="when">şimdi</div>
-      </div>
-      <div class="mb">
-        <div class="subj">${m.subj}</div>
-        <div class="text">${m.text}</div>
-        ${linkHtml}${attachHtml}
-      </div>
-    </div>`;
+  mailSahnesiKur(!!m.attach);
+  $('#qFrom').textContent = m.from;
+  $('#qAddr').textContent = m.addr;
+  $('#qBody').innerHTML =
+    `<div class="konu">${m.subj}</div><div class="metin">${m.text}</div>` +
+    (m.link ? `<div class="baglanti">${m.link}</div>` : '');
+  $('#qAttach').textContent = m.attach || '';
   $('#questionScreen').classList.remove('hidden');
+  govdeSigdir();
 }
 
 /* ---------- 6) KARAR + GERİ BİLDİRİM ---------- */

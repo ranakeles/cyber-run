@@ -51,19 +51,18 @@
 
 <!-- ================= SORU EKRANI (uçuş sırasında açılır) ================= -->
 <div id="questionScreen" class="q-overlay hidden">
-  <div class="q-inner">
-    <div class="q-head">✉️ GELEN E-POSTA — İNCELE VE KARAR VER</div>
-    <div id="stage"><!-- e-posta kartı buraya --></div>
-    <div class="zones">
-      <button class="zone safe" id="zoneSafe">
-        <svg class="zi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z"/><path d="M9 12l2 2 4-4" stroke-width="1.9"/></svg>
-        <div><div class="zt">GÜVENLİ</div><div class="zs">geçişe izin ver</div></div>
-      </button>
-      <button class="zone danger" id="zoneDanger">
-        <svg class="zi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3z"/><path d="M9 9l6 6M15 9l-6 6" stroke-width="1.9"/></svg>
-        <div><div class="zt">ŞÜPHELİ</div><div class="zs">saldırıyı durdur</div></div>
-      </button>
+  <!-- Kart ve butonlar görselde çizili (mail_body.png / mail_file.png).
+       Kod yalnızca metinleri yerleştirir; konumlar script'teki MAIL_YERI
+       tablosundan gelir, o da görsellerden ölçüldü. -->
+  <div class="mail-stage" id="mailStage">
+    <div class="mail-ust" id="qHead">
+      <div class="mail-kim" id="qFrom"></div>
+      <div class="mail-adres" id="qAddr"></div>
     </div>
+    <div class="mail-govde" id="qBody"></div>
+    <div class="mail-ek" id="qAttach"></div>
+    <button class="mail-hit" id="zoneSafe"   aria-label="Güvenli"></button>
+    <button class="mail-hit" id="zoneDanger" aria-label="Şüpheli"></button>
   </div>
 </div>
 

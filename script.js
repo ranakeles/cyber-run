@@ -20,8 +20,8 @@
    sadece azalır. (Bir ara "3 doğru üst üste = +1 can" vardı; oyunun bitmesini
    imkânsızlaştırdığı için kaldırıldı.) */
 const START_LIVES = 3, MAX_LIVES = 3;
-/* Can YALNIZCA yanlış cevapta gider: oyunun konusu oltalamayı tanımak.
-   Soruyu kaçırmak (refleks hatası) ve engele çarpmak sadece puan götürür. */
+/* Can yanlış cevapta VE soruyu kaçırınca gider. Engele çarpmak sadece puan
+   götürür — koşu becerisi yüzünden ölmek oyunun mesajını gölgeler. */
 const PTS_CORRECT = 100, PTS_WRONG = -40, PTS_MISS = -20, STREAK_BONUS = 20;
 
 // E-posta havuzu (Cyber Shield içeriği). safe:true => güvenli. why => açıklama.
@@ -1399,22 +1399,25 @@ function nextFlight(){
   $('#questionScreen').classList.add('hidden');
 }
 
-/* Kaçırılan soru CAN GÖTÜRMEZ, sadece puan. Soru ile engel bazen üst üste
-   geliyordu ve oyuncu kendi hatası olmadan can kaybediyordu; artık hem
-   zarfın etrafı temiz tutuluyor (bkz. zarfaUygun) hem de kaçırmanın bedeli
-   yalnızca puan. */
+/* Kaçırılan soru bir can götürür. Bu bir ara kaldırılmıştı çünkü soru ile
+   engel üst üste doğabiliyor ve oyuncu kendi hatası olmadan can
+   kaybedebiliyordu; `zarfaUygun` o durumu imkânsız hale getirdiği için
+   ceza geri kondu — artık kaçırmak gerçekten oyuncunun tercihi.
+   Puan cezası yine de yanlış cevaptan hafif: kaçırmak refleks hatası,
+   kanmak bilgi hatası.                                                  */
 function missQuestion(){
   const m = aktifSoru;
   total++;                       // doğruluk oranına yansısın
   streak = 0;
+  lives--;
   score = Math.max(0, score + PTS_MISS);
-  updateHud();
+  updateHud(-1);
   state = 'feedback';
   const f = $('#flash');
   $('#fTag').className = 'ftag no';
   $('#fTag').textContent = 'KAÇIRDIN ✕';
   $('#fWhy').textContent = (m.safe ? 'Bu e-posta güvenliydi. ' : 'Bu e-posta şüpheliydi. ') + m.why;
-  $('#fPts').textContent = PTS_MISS + ' puan';
+  $('#fPts').textContent = PTS_MISS + ' puan  •  −1 can';
   $('#fPts').style.color = 'var(--danger)';
   f.classList.add('show');
   setTimeout(()=>{ f.classList.remove('show'); sonrakiAdim(); }, 1700);
@@ -1459,7 +1462,7 @@ function decide(decision){
     correct++; streak++; bestStreak = Math.max(bestStreak, streak);
     delta = PTS_CORRECT + (streak>=3 ? STREAK_BONUS : 0);
   } else {
-    streak = 0; delta = PTS_WRONG; lives--;      // can SADECE burada gider
+    streak = 0; delta = PTS_WRONG; lives--;
   }
   score = Math.max(0, score+delta);
   updateHud(isCorrect ? 0 : -1);

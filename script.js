@@ -1346,6 +1346,9 @@ function loop(now){
     // Bekleme/bitiş ekranı: sahne arkada canlı akmaya devam eder (attract mod)
     plane.bob += dt*7; worldScroll += dt*1.6;
     plane.laneVis += (plane.lane - plane.laneVis) * Math.min(1, dt*12);
+  } else if(state==='naming'){
+    // İsim yazılırken manzara yavaşça aksın — donmuş kare bozuk görünüyor
+    worldScroll += dt*1.6*0.45; plane.bob += dt*7*0.45;
   } else if(state==='question'){
     plane.bob += dt*2;
   }
@@ -1485,6 +1488,86 @@ function flash(ok, m, delta){
   setTimeout(()=>{ f.classList.remove('show'); sonrakiAdim(); }, 1700);
 }
 
+/* ---------- İSİM GİRİŞİ ----------
+   OYNA'ya basınca açılır; oyun ancak isim yazılıp BAŞLA'ya basılınca başlar.
+   Kioskta fiziksel klavye olmayacağı için tuşlar sayfanın kendi klavyesi.
+   Türkçe Q düzeni: Ğ Ü Ş İ Ö Ç dahil.                                    */
+const KLAVYE = [
+  ['Q','W','E','R','T','Y','U','I','O','P','Ğ','Ü'],
+  ['A','S','D','F','G','H','J','K','L','Ş','İ'],
+  ['Z','X','C','V','B','N','M','Ö','Ç']
+];
+const AD_MIN = 2, AD_MAX = 12;     // 12'den uzun isim skor tablosuna sığmıyor
+let yazilanAd = '';
+
+function klavyeKur(){
+  const kb = $('#keyboard');
+  if(!kb || kb.children.length) return;         // bir kez kurulur
+  for(const satir of KLAVYE){
+    const sr = document.createElement('div'); sr.className = 'kb-row';
+    for(const harf of satir){
+      const b = document.createElement('button');
+      b.className = 'kb-key'; b.type = 'button'; b.textContent = harf;
+      b.addEventListener('click', ()=> adYaz(harf));
+      sr.appendChild(b);
+    }
+    kb.appendChild(sr);
+  }
+  // Alt satır: boşluk + silme
+  const alt = document.createElement('div'); alt.className = 'kb-row';
+  for(const [etiket, islev] of [['BOŞLUK', ()=>adYaz(' ')], ['⌫ SİL', adSil]]){
+    const b = document.createElement('button');
+    b.className = 'kb-key wide'; b.type = 'button'; b.textContent = etiket;
+    b.addEventListener('click', islev);
+    alt.appendChild(b);
+  }
+  kb.appendChild(alt);
+}
+
+function adGuncelle(){
+  $('#nameText').textContent = yazilanAd;
+  const yeterli = yazilanAd.trim().length >= AD_MIN;
+  $('#nameGo').disabled = !yeterli;
+  $('#nameHint').classList.toggle('dolu', yeterli);
+}
+function adYaz(harf){
+  if(yazilanAd.length >= AD_MAX) return;
+  // Baştan ya da arka arkaya boşluk kabul etme
+  if(harf === ' ' && (!yazilanAd || yazilanAd.endsWith(' '))) return;
+  yazilanAd += harf; adGuncelle();
+}
+function adSil(){ yazilanAd = yazilanAd.slice(0, -1); adGuncelle(); }
+
+function isimEkraniAc(){
+  klavyeKur();
+  yazilanAd = ''; adGuncelle();
+  $('#startScreen').classList.add('hidden');
+  $('#endScreen').classList.add('hidden');
+  $('#nameScreen').classList.remove('hidden');
+  /* 'naming' durumunda sahne çiziliyor ve yavaşça akıyor: arkada donmuş bir
+     kare durmasın. Oyun mantığı çalışmıyor, sadece manzara. */
+  state = 'naming';
+  lastTime = performance.now(); requestAnimationFrame(loop);
+}
+function isimOnayla(){
+  const ad = yazilanAd.trim();
+  if(ad.length < AD_MIN) return;
+  playerName = ad;
+  $('#nameScreen').classList.add('hidden');
+  startGame();
+}
+/* Geliştirirken (ve varsa gerçek klavyede) yazmayı da destekle */
+window.addEventListener('keydown', e => {
+  if($('#nameScreen').classList.contains('hidden')) return;
+  if(e.key === 'Backspace'){ e.preventDefault(); adSil(); return; }
+  if(e.key === 'Enter'){ e.preventDefault(); isimOnayla(); return; }
+  if(e.key === ' '){ e.preventDefault(); adYaz(' '); return; }
+  if(e.key.length === 1){
+    const h = e.key.toLocaleUpperCase('tr');
+    if(/^[A-ZÇĞİÖŞÜ]$/.test(h)) adYaz(h);
+  }
+});
+
 /* ---------- 7) BİTİŞ + BUTONLAR ---------- */
 /* Skor tablosu: ilk 5. Oyuncu ilk 5'e giremediyse kendi satırı GERÇEK
    sırasıyla en alta eklenir — yoksa çocuk kendi puanını hiç göremezdi.
@@ -1528,7 +1611,11 @@ function endGame(){
 // Butonlar
 $('#zoneSafe').addEventListener('click', ()=> decide('safe'));
 $('#zoneDanger').addEventListener('click', ()=> decide('danger'));
-$('#startBtn').addEventListener('click', startGame);
+// OYNA → önce isim, sonra oyun
+$('#startBtn').addEventListener('click', isimEkraniAc);
+$('#nameGo').addEventListener('click', isimOnayla);
+/* TEKRAR DENE ismi korur: aynı çocuk yeniden oynuyor demektir. Sıradaki
+   çocuk için ANA SAYFA'dan girilince isim yeniden sorulur. */
 $('#againBtn').addEventListener('click', startGame);
 // Görseldeki "ANA SAYFA" butonu: başlangıç ekranına dön (sahne arkada akmaya devam eder)
 $('#homeBtn').addEventListener('click', ()=>{

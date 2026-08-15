@@ -168,16 +168,25 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
   -webkit-tap-highlight-color:transparent; border-radius:999px; transition:background .08s; }
 .mail-hit:active{ background:rgba(0,0,0,.18); }
 
-/* ================= GERİ BİLDİRİM ================= */
-.flash{ position:fixed; inset:0; z-index:20; display:grid; place-items:center; pointer-events:none; opacity:0; transition:opacity .15s; padding:20px; }
+/* ================= GERİ BİLDİRİM =================
+   Kartın tamamı answers.png'de çizili: SOLDA yeşil "DOĞRU!", SAĞDA kırmızı
+   "YANLIŞ!". Tek görselde iki kart olduğu için kalp şeridindeki yöntem
+   kullanılıyor — arka plan ölçeklenip kaydırılarak yalnızca ilgili yarısı
+   gösteriliyor. Kutuların yeri script'teki CEVAP_YERI tablosundan gelir.  */
+.flash{ position:fixed; inset:0; z-index:20; display:grid; place-items:center;
+  pointer-events:none; opacity:0; transition:opacity .22s ease; padding:16px; }
 .flash.show{ opacity:1; }
-.flash .fcard{ transform:translateY(12px) scale(.95); transition:transform .28s cubic-bezier(.2,.9,.25,1);
-  background:#fffdf6; border:1px solid rgba(120,86,44,.18); border-radius:20px; padding:22px 30px; max-width:520px;
-  text-align:center; box-shadow:0 26px 54px rgba(30,20,10,.45), 0 2px 0 rgba(255,255,255,.9) inset; }
-.flash.show .fcard{ transform:none; }
-.flash .ftag{ font-family:var(--hud); font-weight:700; letter-spacing:.08em; font-size:31px; }
-.flash .ftag.ok{ color:#2f9445; } .flash .ftag.no{ color:#c62f2c; }
-.flash .fwhy{ color:#4a3c28; font-size:14.5px; margin-top:8px; line-height:1.55; }
-.flash .fpts{ font-family:var(--hud); font-weight:700; font-size:17px; margin-top:8px; }
+.cevap-kart{ position:relative; background-repeat:no-repeat;
+  transform:translateY(14px) scale(.94); transition:transform .3s cubic-bezier(.2,.9,.25,1);
+  filter:drop-shadow(0 18px 44px rgba(0,0,0,.5)); }
+.flash.show .cevap-kart{ transform:none; }
+/* Açıklama kutusu: neden doğru/yanlış olduğunu anlatan asıl öğretici metin */
+.cevap-aciklama{ position:absolute; display:flex; align-items:center; justify-content:center;
+  text-align:center; padding:0 4%; overflow:hidden;
+  font-family:var(--body); font-weight:600; font-size:1em; line-height:1.4; color:#3a2f22; }
+/* Alttaki şerit: puan ve can değişimi */
+.cevap-puan{ position:absolute; display:flex; align-items:center; justify-content:center;
+  font-family:var(--hud); font-weight:700; font-size:1.05em; line-height:1;
+  white-space:nowrap; color:#2b2114; }
 
 @media (max-width:560px){ .zones{ grid-template-columns:1fr; } }

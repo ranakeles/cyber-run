@@ -1578,9 +1578,12 @@ function cevapKartiKur(tur){
   const y = CEVAP_YERI[tur] || CEVAP_YERI.yanlis;
   const k = y.kart, G = y;
   const kart = $('#answerCard'); if(!kart) return;
-  // Kart pencereye sığsın; yazı boyu kartla birlikte ölçeklensin
-  let w = Math.min(window.innerWidth - 32, 560), h = w*k.h/k.w;
-  const enFazla = window.innerHeight - 32;
+  /* Kart SAHNE genişliğine oranlı: sabit piksel sınırı kullanılırsa küçük
+     ekranda ekranı kaplıyor, kiosk gibi büyük ekranda ise minik kalıyor.
+     Yazı boyu da kartla birlikte ölçekleniyor.                          */
+  const taban = (W > 0 ? W : window.innerWidth);
+  let w = taban * 0.68, h = w*k.h/k.w;
+  const enFazla = window.innerHeight * 0.6;      // uzun kartlar ekrana sığsın
   if(h > enFazla){ h = enFazla; w = h*k.w/k.h; }
   kart.style.width = w+'px'; kart.style.height = h+'px';
   kart.style.fontSize = (h*0.045)+'px';

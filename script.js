@@ -1569,7 +1569,10 @@ const CEVAP_YERI = {
             kart:{x:786, y:122, w:704,  h:742},
             aciklama:{x:842, y:518, w:589, h:145},
             puan:{x:954, y:708, w:365, h:79} },
-  kacti:  { src:'assets/missed_question.png', W:1536, H:1024,
+  /* Kaçırıldı kartı ENİNE bir tasarım; diğerleriyle aynı genişlikte
+     çizilince yüksekliği düşük kalıyor ve gözle daha küçük görünüyor
+     (alanı diğerlerinin ~%74'ü). Eşit görünsün diye biraz büyütülüyor. */
+  kacti:  { src:'assets/missed_question.png', W:1536, H:1024, olcek:1.16,
             kart:{x:151, y:43,  w:1182, h:899},
             aciklama:{x:314, y:582, w:899, h:161},
             puan:{x:490, y:786, w:535, h:75} }
@@ -1582,7 +1585,7 @@ function cevapKartiKur(tur){
      ekranda ekranı kaplıyor, kiosk gibi büyük ekranda ise minik kalıyor.
      Yazı boyu da kartla birlikte ölçekleniyor.                          */
   const taban = (W > 0 ? W : window.innerWidth);
-  let w = taban * 0.68, h = w*k.h/k.w;
+  let w = taban * 0.80 * (y.olcek || 1), h = w*k.h/k.w;
   const enFazla = window.innerHeight * 0.6;      // uzun kartlar ekrana sığsın
   if(h > enFazla){ h = enFazla; w = h*k.w/k.h; }
   kart.style.width = w+'px'; kart.style.height = h+'px';

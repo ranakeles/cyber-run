@@ -1438,14 +1438,13 @@ function missQuestion(){
   updateHud(-1);
   state = 'feedback';
   const f = $('#flash');
-  /* Kaçırmak için ayrı bir kart görseli yok; kırmızı kart kullanılıyor ve
-     metin "kaçırdın" diye başlıyor ki oyuncu yanlış cevap verdiğini
-     sanmasın. */
-  cevapKartiKur(false);
-  $('#fWhy').textContent = 'Soruyu kaçırdın. ' +
+  /* Kaçırmanın kendi kartı var ("SORU KAÇIRILDI!"), o yüzden metne ayrıca
+     "kaçırdın" yazmaya gerek yok — başlık zaten görselde. */
+  cevapKartiKur('kacti');
+  $('#fWhy').textContent =
     (m.safe ? 'Bu e-posta güvenliydi. ' : 'Bu e-posta şüpheliydi. ') + m.why;
   $('#fPts').textContent = PTS_MISS + ' puan  •  −1 can';
-  $('#fPts').style.color = '#b3261e';
+  $('#fPts').style.color = '#b45309';   // kaçırma kartı turuncu tonlarda
   aciklamaSigdir();
   f.classList.add('show');
   setTimeout(()=>{ f.classList.remove('show'); sonrakiAdim(); }, 1700);
@@ -1558,18 +1557,26 @@ function decide(decision){
    answers.png tek dosyada iki kart taşıyor (solda DOĞRU, sağda YANLIŞ).
    Kutular görselden ÖLÇÜLDÜ; kart dikdörtgeni arka planı ölçekleyip
    kaydırarak gösteriliyor, böylece iki kart tek görselde kalıyor.       */
-const CEVAP_GORSEL = { src:'assets/answers.png', W:1536, H:1024 };
+/* Üç kart: doğru ve yanlış answers.png'nin iki yarısında, kaçırılan soru
+   ise kendi dosyasında (missed_question.png). Hepsinin yapısı aynı:
+   büyük açıklama kutusu + altında puan şeridi.                           */
 const CEVAP_YERI = {
-  dogru:  { kart:{x:46,  y:123, w:714, h:732},
+  dogru:  { src:'assets/answers.png', W:1536, H:1024,
+            kart:{x:46,  y:123, w:714,  h:732},
             aciklama:{x:102, y:519, w:601, h:143},
             puan:{x:214, y:706, w:377, h:79} },
-  yanlis: { kart:{x:786, y:122, w:704, h:742},
+  yanlis: { src:'assets/answers.png', W:1536, H:1024,
+            kart:{x:786, y:122, w:704,  h:742},
             aciklama:{x:842, y:518, w:589, h:145},
-            puan:{x:954, y:708, w:365, h:79} }
+            puan:{x:954, y:708, w:365, h:79} },
+  kacti:  { src:'assets/missed_question.png', W:1536, H:1024,
+            kart:{x:151, y:43,  w:1182, h:899},
+            aciklama:{x:314, y:582, w:899, h:161},
+            puan:{x:490, y:786, w:535, h:75} }
 };
-function cevapKartiKur(dogruMu){
-  const y = dogruMu ? CEVAP_YERI.dogru : CEVAP_YERI.yanlis;
-  const k = y.kart, G = CEVAP_GORSEL;
+function cevapKartiKur(tur){
+  const y = CEVAP_YERI[tur] || CEVAP_YERI.yanlis;
+  const k = y.kart, G = y;
   const kart = $('#answerCard'); if(!kart) return;
   // Kart pencereye sığsın; yazı boyu kartla birlikte ölçeklensin
   let w = Math.min(window.innerWidth - 32, 560), h = w*k.h/k.w;
@@ -1604,7 +1611,7 @@ function aciklamaSigdir(){
 
 function flash(ok, m, delta){
   const f = $('#flash');
-  cevapKartiKur(ok);
+  cevapKartiKur(ok ? 'dogru' : 'yanlis');
   const truth = m.safe ? 'Bu e-posta GÜVENLİ idi. ' : 'Bu e-posta ŞÜPHELİ idi. ';
   $('#fWhy').textContent = (ok?'':truth) + m.why;
   // Can satırı sadece yanlış cevapta yazılır — can başka türlü değişmiyor

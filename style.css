@@ -130,6 +130,24 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 .pause-resume{ left:16.40%; width:67.11%; top:48.29%; height:16.98%; }
 .pause-home  { left:16.04%; width:67.74%; top:69.54%; height:16.48%; }
 
+/* ---------- GERİ SAYIM ----------
+   Kart kapandıktan sonra oyun HEMEN başlamıyor: 3-2-1 boyunca sahne hâlâ
+   donuk. Karartma duraklama kartındakinden hafif — çocuk yolu görsün,
+   önünde engel varsa hazırlansın. Dokunma geçirmez değil: katman
+   pointer-events:none, altındaki sahne yine de 'paused' olduğu için
+   kaydırmalara tepki vermez.                                            */
+.sayim-katman{ position:fixed; inset:0; z-index:13; display:grid; place-items:center;
+  pointer-events:none; background:rgba(7,18,38,.34); }
+.sayim-rakam{ filter:drop-shadow(0 8px 22px rgba(0,0,0,.6)); }
+/* Her rakam kendi darbesiyle giriyor: sayının değiştiği fark edilsin */
+.sayim-rakam.vur{ animation:sayimVur .62s cubic-bezier(.2,.9,.25,1); }
+@keyframes sayimVur{
+  0%{ transform:scale(1.5); opacity:0 }
+  18%{ transform:scale(1); opacity:1 }
+  75%{ transform:scale(1); opacity:1 }
+  100%{ transform:scale(.86); opacity:.55 }
+}
+
 /* ---------- KAPLAYAN EKRANLAR (başlangıç / bitiş) ----------
    Arkada oyun sahnesi CANLI akar; üstte sadece yumuşak bir vinyet var.
    Kart yok — mobil oyunlardaki gibi doğrudan sahne üstü yerleşim.        */

@@ -1414,6 +1414,7 @@ function startGame(){
   updateHud();
   $('#startScreen').classList.add('hidden'); $('#endScreen').classList.add('hidden');
   $('#pauseScreen').classList.add('hidden');
+  geriSayimIptal();          // önceki oyundan kalan sayım yeni oyunu başlatmasın
   $('#hud').classList.remove('hidden');
   nextFlight();
   lastTime = performance.now(); requestAnimationFrame(loop);
@@ -1836,19 +1837,54 @@ function duraklat(){
 function molaKapat(){
   $('#pauseScreen').classList.add('hidden');
 }
+/* ---- Geri sayım ----
+   DEVAM ET oyunu anında başlatmıyor: kart kapanınca 3-2-1 sayılıyor ve
+   sahne o süre boyunca donuk kalıyor. Kart tam da önünde engel varken
+   kapanırsa oyuncu hazırlıksız yakalanıyordu.
+   `sayimNo` eski bir zamanlayıcının araya girmesini engelliyor: oyuncu
+   sayım biterken oyunu bırakırsa o zamanlayıcı yeni oyunu başlatmasın. */
+const SAYIM_MS = 700;          // her rakamın ekranda kalma süresi
+let sayimNo = 0, sayiliyor = false;
+function geriSayimIptal(){
+  sayimNo++; sayiliyor = false;
+  $('#countScreen').classList.add('hidden');
+}
+function geriSayimBaslat(){
+  const no = ++sayimNo;
+  sayiliyor = true;
+  const katman = $('#countScreen'), kutu = $('#countVal');
+  katman.classList.remove('hidden');
+  let n = 3;
+  const goster = ()=>{
+    if(no !== sayimNo) return;              // araya başka bir sayım/çıkış girdi
+    if(n === 0){
+      katman.classList.add('hidden');
+      sayiliyor = false;
+      /* Duraklamada geçen süre oyuna eklenmesin. Döngü duraklamada da dönüp
+         lastTime'ı tazelediği için normalde sıçrama olmaz; sekme arkaya
+         atılıp rAF durursa diye yine de sıfırlıyoruz. */
+      lastTime = performance.now();
+      state = 'flying';
+      return;
+    }
+    // Rakam boyu sahne yüksekliğine oranlı: kioskta da telefonda da aynı görünür
+    rakamlariDiz(kutu, n, Math.round(H * 0.20));
+    kutu.classList.remove('vur'); void kutu.offsetWidth; kutu.classList.add('vur');
+    n--;
+    setTimeout(goster, SAYIM_MS);
+  };
+  goster();
+}
 function devamEt(){
-  if(state !== 'paused') return;
+  if(state !== 'paused' || sayiliyor) return;   // sayım sürerken tekrar tetiklenmesin
   molaKapat();
-  /* Duraklamada geçen süre oyuna eklenmesin. Döngü duraklamada da dönüp
-     lastTime'ı tazelediği için normalde sıçrama olmaz; sekme arkaya
-     atılıp rAF durursa diye yine de sıfırlıyoruz. */
-  lastTime = performance.now();
-  state = 'flying';
+  geriSayimBaslat();
 }
 /* Yarıda bırakılan oyun skor tablosuna YAZILMAZ: çocuk oyunu bitirmedi,
    yarım skorla listeye girmesi diğer oyuncuları haksız duruma düşürürdü. */
 function molaAnaSayfa(){
   molaKapat();
+  geriSayimIptal();
   $('#hud').classList.add('hidden');
   anaSayfayaDon();
 }

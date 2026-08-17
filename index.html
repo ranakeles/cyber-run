@@ -20,7 +20,21 @@
   <!-- HUD tamamen görsel: kalpler "can", kupalı sayaç "puan" demek — yazı gerekmiyor.
        İçerikleri script dolduruyor (life.png / life2.png / skor_tablosu.png / score_numbers.png) -->
   <div class="hud-item"><div class="hud-can" id="lifeVal"></div></div>
+  <!-- Duraklatma: kalplerle skorun arasındaki boş yer. Görselin tamamı
+       pause_button.png; kod sadece dokunma alanı veriyor. -->
+  <button id="pauseBtn" class="hud-pause" aria-label="Duraklat"></button>
   <div class="hud-item"><div class="hud-score" id="scoreBox"><div class="score-digits rakam-dizi" id="scoreVal"></div></div></div>
+</div>
+
+<!-- ================= DURAKLAMA =================
+     Tam ekran değil: donmuş oyunun üstünde duran bir kart (pause_card.png,
+     şeffaf zeminli). Arkadaki karartma koddan gelir — çizim değil, düz bir
+     yarı saydam katman. Buton kutuları görselden ÖLÇÜLDÜ (.pause-* kuralları). -->
+<div id="pauseScreen" class="pause-overlay hidden">
+  <div class="pause-stage" id="pauseStage">
+    <button class="pause-hit pause-resume" id="resumeBtn"    aria-label="Devam et"></button>
+    <button class="pause-hit pause-home"   id="pauseHomeBtn" aria-label="Ana sayfa"></button>
+  </div>
 </div>
 
 <!-- ================= BAŞLANGIÇ =================

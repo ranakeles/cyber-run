@@ -99,6 +99,34 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 .hud-can.vur{ animation:canVur .45s ease; }
 @keyframes canVur{ 0%{ transform:scale(1) } 35%{ transform:scale(1.22) } 100%{ transform:scale(1) } }
 
+/* Duraklatma butonu: kalplerle skorun arasında, ikisinin ortasında bir boy.
+   #hud pointer-events:none olduğu için burada tekrar açılıyor. */
+.hud-pause{ flex:none; width:56px; height:56px; background:none; border:none; padding:0;
+  background-size:100% 100%; background-repeat:no-repeat;   /* görsel script'te veriliyor */
+  pointer-events:auto; cursor:pointer; -webkit-tap-highlight-color:transparent;
+  filter:drop-shadow(0 3px 7px rgba(0,0,0,.4)); transition:transform .08s ease; }
+.hud-pause:active{ transform:scale(.92); }
+
+/* ================= DURAKLAMA KARTI =================
+   Tasarımın tamamı pause_card.png (şeffaf zeminli). Kart, oyun sahnesinin
+   genişliğine oranlı ölçülendirilir (script'te) — sabit piksel verilirse
+   küçük ekranda taşıyor, kioskta minicik kalıyordu. İçindeki iki buton
+   görselin pikselleri taranarak ÖLÇÜLDÜ (1122x1402 içinde:
+   DEVAM ET x184-936 y677-914, ANA SAYFA x180-939 y975-1205).
+   Görsel değişirse bu yüzdeler yeniden ölçülmeli.                        */
+.pause-overlay{ position:fixed; inset:0; z-index:12; display:grid; place-items:center;
+  padding:16px; background:rgba(7,18,38,.58); backdrop-filter:blur(2px); }
+.pause-stage{ position:relative; background-size:100% 100%; background-repeat:no-repeat;
+  animation:pauseIn .26s cubic-bezier(.2,.9,.25,1);
+  filter:drop-shadow(0 16px 44px rgba(0,0,0,.55)); }
+@keyframes pauseIn{ from{ opacity:0; transform:translateY(16px) scale(.94);} to{ opacity:1; transform:none; } }
+/* Görseldeki butonların üstündeki görünmez dokunma alanları */
+.pause-hit{ position:absolute; background:none; border:none; padding:0; cursor:pointer;
+  -webkit-tap-highlight-color:transparent; border-radius:999px; transition:background .08s; }
+.pause-hit:active{ background:rgba(0,0,0,.18); }
+.pause-resume{ left:16.40%; width:67.11%; top:48.29%; height:16.98%; }
+.pause-home  { left:16.04%; width:67.74%; top:69.54%; height:16.48%; }
+
 /* ---------- KAPLAYAN EKRANLAR (başlangıç / bitiş) ----------
    Arkada oyun sahnesi CANLI akar; üstte sadece yumuşak bir vinyet var.
    Kart yok — mobil oyunlardaki gibi doğrudan sahne üstü yerleşim.        */

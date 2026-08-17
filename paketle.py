@@ -99,6 +99,16 @@ js = js.replace(
     "loadImageWhiteKeyed('child2','assets/child2.png');\n"
     "loadImageWhiteKeyed('child3','assets/child3.png');\n"
     "loadImageWhiteKeyed('child4','assets/child4.png');")
+#    Binalar da aynı şekilde birleştirilen bir yol kullanıyor. Bunlar pakete
+#    ALINMIYOR (duvar şeritleri varken hiç çizilmiyorlar, yalnızca onlar
+#    yüklenemezse devreye giren yedek). Düz yazıya çevirince aşağıdaki
+#    "kalanları boşalt" adımı onları da yakalıyor ve paket açılırken üç
+#    tane 404 istemekten kurtuluyor.
+js = js.replace(
+    "BUILD_KEYS.forEach(k => loadImageKeyed(k, 'assets/'+k+'.png'));",
+    "loadImageKeyed('building_a','assets/building_a.png');\n"
+    "loadImageKeyed('building_b','assets/building_b.png');\n"
+    "loadImageKeyed('building_c','assets/building_c.png');")
 # 1) Sürüm damgası gereksiz (data: URI'ye ?v= eklenemez)
 js = js.replace("const ASSET_V = '?v=' + Date.now();", "const ASSET_V = '';")
 # 2) CSS artık gömülü; link tazeleme bloğunu çıkar

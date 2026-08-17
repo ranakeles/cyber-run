@@ -77,6 +77,16 @@ def data_uri(yol, fname, mime):
 
 html = open(os.path.join(SRC, "index.html"), encoding="utf-8").read()
 css  = open(os.path.join(SRC, "style.css"),  encoding="utf-8").read()
+
+# --- CSS içindeki yazı tiplerini göm ---
+# Görseller koddaki metinlerden bulunup gömülüyor ama fontlar CSS'te
+# url(...) ile duruyor; gömülmezlerse tek dosya sürümünde yazılar yedek
+# yazı tipiyle çıkar. Kioskta internet olmayacağı için bu şart.
+def font_göm(m):
+    with open(os.path.join(SRC, m.group(1)), "rb") as f:
+        return "url(data:font/woff2;base64,%s)" % base64.b64encode(f.read()).decode()
+css, kac = re.subn(r"url\((assets/fonts/[^)]+\.woff2)\)", font_göm, css)
+print("Gömülen yazı tipi dosyası:", kac)
 js   = open(os.path.join(SRC, "script.js"),  encoding="utf-8").read()
 
 # --- JS'i tek dosya moduna uyarla ---

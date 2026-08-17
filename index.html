@@ -19,11 +19,14 @@
 <div id="hud" class="hidden">
   <!-- HUD tamamen görsel: kalpler "can", kupalı sayaç "puan" demek — yazı gerekmiyor.
        İçerikleri script dolduruyor (life.png / life2.png / skor_tablosu.png / score_numbers.png) -->
-  <div class="hud-item"><div class="hud-can" id="lifeVal"></div></div>
-  <!-- Duraklatma: kalplerle skorun arasındaki boş yer. Görselin tamamı
-       pause_button.png; kod sadece dokunma alanı veriyor. -->
+  <!-- Solda alt alta: üstte puan sayacı, altında canlar -->
+  <div class="hud-sol">
+    <div class="hud-item"><div class="hud-score" id="scoreBox"><div class="score-digits rakam-dizi" id="scoreVal"></div></div></div>
+    <div class="hud-item"><div class="hud-can" id="lifeVal"></div></div>
+  </div>
+  <!-- Duraklatma sağ üstte. Görselin tamamı pause_button.png; kod sadece
+       dokunma alanı veriyor. -->
   <button id="pauseBtn" class="hud-pause" aria-label="Duraklat"></button>
-  <div class="hud-item"><div class="hud-score" id="scoreBox"><div class="score-digits rakam-dizi" id="scoreVal"></div></div></div>
 </div>
 
 <!-- ================= DURAKLAMA =================

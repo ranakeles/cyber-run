@@ -86,7 +86,11 @@ const rand = (a,b)=> a+Math.random()*(b-a);
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function initials(s){ return s.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
 
-let state = 'idle';        // idle | flying | question | ended
+let state = 'idle';        // idle | naming | flying | question | feedback | paused | ended
+/* Süslemelerin (simgenin süzülmesi/nabzı) saati. Duvar saati yerine bunu
+   kullanıyoruz: duraklatınca DURUYOR, yoksa kart açıkken arkadaki simge
+   kıpırdamaya devam eder ve oyun donmuş görünmez.                        */
+let sahneSaati = 0;
 /* Soru sırası da uçaklardaki gibi "karılmış deste": havuzdaki her soru
    birer kez sorulur, deste bitince yeniden karılır. Böylece can bitmediği
    sürece oyun sürer ve aynı soru üst üste gelmez. Havuz büyüdüğünde
@@ -384,6 +388,11 @@ function drawCover(img){
 const STAGE_AR = 941/1672;   // sokak görselinin oranı (~9:16). Sahne bu orana kilitli.
 const END_AR = 853/1844;     // bitiş ekranı tasarımının oranı (daha dar)
 const AD_AR  = 1024/1536;    // isim ekranı tasarımının oranı (daha geniş)
+const MOLA_AR = 1122/1402;   // duraklama kartının oranı (tam ekran değil, kart)
+/* Kart tam ekranı kaplamaz: oyun sahnesinin genişliğinin bu kadarını kaplar.
+   Sabit piksel verilseydi küçük ekranda taşar, kioskta minicik kalırdı. */
+const MOLA_GENISLIK = 0.80;  // sahne genişliğinin oranı
+const MOLA_YUKSEKLIK = 0.74; // sahne yüksekliğini bundan fazla kaplamasın
 function resize(){
   DPR = Math.min(window.devicePixelRatio||1, 2);
   // Pencereye sığan en büyük 9:16 dikey sahneyi hesapla (kırpma olmasın diye)
@@ -416,6 +425,14 @@ function resize(){
     if(nw/nh > AD_AR) nw = nh*AD_AR; else nh = nw/AD_AR;
     ns.style.width = nw+'px'; ns.style.height = nh+'px';
     ns.style.fontSize = (nh*0.02)+'px';
+  }
+  /* Duraklama kartı: diğer ekranlar gibi pencereye değil SAHNEYE oranlı.
+     Önce genişlikten hesaplanır, sahneye sığmazsa yükseklikten kısılır. */
+  const ps = document.getElementById('pauseStage');
+  if(ps){
+    let pw = W * MOLA_GENISLIK, ph = pw / MOLA_AR;
+    if(ph > H * MOLA_YUKSEKLIK){ ph = H * MOLA_YUKSEKLIK; pw = ph * MOLA_AR; }
+    ps.style.width = pw+'px'; ps.style.height = ph+'px';
   }
   ctx.setTransform(DPR,0,0,DPR,0,0);
   // perspektif değerleri computePerspective() içinde hesaplanıyor
@@ -1011,7 +1028,7 @@ const TOKEN_LOW_Y = 108, TOKEN_HIGH_Y = 214;  // yerde / engel üstünde süzül
 function drawToken(){
   const tt = 1/Math.sqrt(Math.max(0.4, token.u));
   const p = project(token.lane, tt);
-  const t = performance.now()/1000;
+  const t = sahneSaati;                             // duraklatınca durur
   const bobY  = Math.sin(t*2.6)*7*p.e;              // havada süzülme
   const pulse = 1 + Math.sin(t*4.2)*0.05;           // hafif nabız
   const liftY = (token.high ? TOKEN_HIGH_Y : TOKEN_LOW_Y) * p.e;
@@ -1343,6 +1360,10 @@ function updateHud(degisim){
 /* ---------- 5) OYUN AKIŞI ---------- */
 function loop(now){
   const dt = Math.min(0.05, (now-lastTime)/1000 || 0); lastTime = now;
+  /* 'paused': hiçbir şey ilerlemez — ne oyun, ne süslemeler, ne gökyüzü.
+     Kare yine de çiziliyor (aşağıda), böylece pencere boyutu değişse bile
+     donmuş görüntü kaybolmaz. */
+  if(state!=='paused') sahneSaati += dt;
   if(state==='flying'){
     // Oyun ilerledikçe hızlanır (bkz. SPEED_* sabitleri)
     playTime += dt;
@@ -1374,7 +1395,7 @@ function loop(now){
     plane.bob += dt*2;
   }
   // Gökyüzündeki uçak oyun hızından bağımsız akar (çok uzakta, kendi seyrinde)
-  if(state !== 'idle') updateSkyPlane(dt);
+  if(state !== 'idle' && state !== 'paused') updateSkyPlane(dt);
   // Başlangıç ekranında sahne tamamen kapalı (tam ekran tasarım) → boşuna çizme
   if(state !== 'idle') drawScene();
   requestAnimationFrame(loop);
@@ -1392,6 +1413,8 @@ function startGame(){
   score=0; streak=0; bestStreak=0; correct=0; total=0;
   updateHud();
   $('#startScreen').classList.add('hidden'); $('#endScreen').classList.add('hidden');
+  $('#pauseScreen').classList.add('hidden');
+  geriSayimIptal();          // önceki oyundan kalan sayım yeni oyunu başlatmasın
   $('#hud').classList.remove('hidden');
   nextFlight();
   lastTime = performance.now(); requestAnimationFrame(loop);
@@ -1802,6 +1825,80 @@ function anaSayfayaDon(){
 $('#againBtn').addEventListener('click', anaSayfayaDon);
 $('#homeBtn').addEventListener('click', anaSayfayaDon);
 
+/* ---------- 8) DURAKLATMA ----------
+   Yalnızca koşu sırasında ('flying') açılabilir. Soru ve geri bildirim
+   sırasında kapalı: geri bildirim kartı setTimeout ile kapanıyor, o sayaç
+   duraklatılamadığı için kart duraklamanın altında kendi kendine geçerdi. */
+function duraklat(){
+  if(state !== 'flying') return;
+  state = 'paused';
+  $('#pauseScreen').classList.remove('hidden');
+}
+function molaKapat(){
+  $('#pauseScreen').classList.add('hidden');
+}
+/* ---- Geri sayım ----
+   DEVAM ET oyunu anında başlatmıyor: kart kapanınca 3-2-1 sayılıyor ve
+   sahne o süre boyunca donuk kalıyor. Kart tam da önünde engel varken
+   kapanırsa oyuncu hazırlıksız yakalanıyordu.
+   `sayimNo` eski bir zamanlayıcının araya girmesini engelliyor: oyuncu
+   sayım biterken oyunu bırakırsa o zamanlayıcı yeni oyunu başlatmasın. */
+const SAYIM_MS = 700;          // her rakamın ekranda kalma süresi
+let sayimNo = 0, sayiliyor = false;
+function geriSayimIptal(){
+  sayimNo++; sayiliyor = false;
+  $('#countScreen').classList.add('hidden');
+}
+function geriSayimBaslat(){
+  const no = ++sayimNo;
+  sayiliyor = true;
+  const katman = $('#countScreen'), kutu = $('#countVal');
+  katman.classList.remove('hidden');
+  let n = 3;
+  const goster = ()=>{
+    if(no !== sayimNo) return;              // araya başka bir sayım/çıkış girdi
+    if(n === 0){
+      katman.classList.add('hidden');
+      sayiliyor = false;
+      /* Duraklamada geçen süre oyuna eklenmesin. Döngü duraklamada da dönüp
+         lastTime'ı tazelediği için normalde sıçrama olmaz; sekme arkaya
+         atılıp rAF durursa diye yine de sıfırlıyoruz. */
+      lastTime = performance.now();
+      state = 'flying';
+      return;
+    }
+    // Rakam boyu sahne yüksekliğine oranlı: kioskta da telefonda da aynı görünür
+    rakamlariDiz(kutu, n, Math.round(H * 0.20));
+    kutu.classList.remove('vur'); void kutu.offsetWidth; kutu.classList.add('vur');
+    n--;
+    setTimeout(goster, SAYIM_MS);
+  };
+  goster();
+}
+function devamEt(){
+  if(state !== 'paused' || sayiliyor) return;   // sayım sürerken tekrar tetiklenmesin
+  molaKapat();
+  geriSayimBaslat();
+}
+/* Yarıda bırakılan oyun skor tablosuna YAZILMAZ: çocuk oyunu bitirmedi,
+   yarım skorla listeye girmesi diğer oyuncuları haksız duruma düşürürdü. */
+function molaAnaSayfa(){
+  molaKapat();
+  geriSayimIptal();
+  $('#hud').classList.add('hidden');
+  anaSayfayaDon();
+}
+$('#pauseBtn').addEventListener('click', duraklat);
+$('#resumeBtn').addEventListener('click', devamEt);
+$('#pauseHomeBtn').addEventListener('click', molaAnaSayfa);
+/* Kioskta klavye yok; bu sadece geliştirirken işe yarıyor. */
+window.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' || e.key === 'p' || e.key === 'P'){
+    e.preventDefault();
+    if(state === 'flying') duraklat(); else if(state === 'paused') devamEt();
+  }
+});
+
 /* ---- Açılış: başlangıç ekranının ARKASINDA sahne canlı aksın (attract mod) ---- */
 resize();
 {
@@ -1820,6 +1917,10 @@ resize();
   const ns = $('#nameStage'), nb = $('#nameBg');
   if(ns) ns.style.backgroundImage = 'url(' + isim + ')';
   if(nb) nb.src = isim;
+  // Duraklama kartı ve HUD'daki duraklatma butonu (ikisi de şeffaf zeminli)
+  const ps = $('#pauseStage'), pb = $('#pauseBtn');
+  if(ps) ps.style.backgroundImage = 'url(' + assetURL('assets/pause_card.png') + ')';
+  if(pb) pb.style.backgroundImage = 'url(' + assetURL('assets/pause_button.png') + ')';
 }
 state = 'idle';
 lastTime = performance.now();

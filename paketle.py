@@ -33,6 +33,8 @@ MAP = {
     "assets/mail_body.png":    ("mail_body.png",    "image/png"),   # e-posta kartı (eksiz)
     "assets/mail_file.png":    ("mail_file.png",    "image/png"),   # e-posta kartı (dosya ekli)
     "assets/enter_name.png":   ("enter_name.png",    "image/png"),   # isim ekranı (klavye dahil)
+    "assets/pause_card.png":   ("pause_card.png",    "image/png"),   # duraklama kartı (şeffaf)
+    "assets/pause_button.png": ("pause_button.png",  "image/png"),   # HUD duraklatma butonu
     "assets/end_page5.png":     ("end_page5.jpg",     "image/jpeg"),   # bitiş ekranı tasarımı
     "assets/wall_strip.png":    ("wall_strip.png",    "image/png"),
     "assets/wall_strip2.png":   ("wall_strip2.png",   "image/png"),

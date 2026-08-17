@@ -103,7 +103,8 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 
 /* Duraklatma butonu: sağ üst köşe, puan sayacıyla aynı hizada başlar.
    #hud pointer-events:none olduğu için burada tekrar açılıyor. */
-.hud-pause{ flex:none; width:78px; height:78px; background:none; border:none; padding:0;
+/* Puan sayacının üst hizasından birazcık aşağıda dursun */
+.hud-pause{ flex:none; width:78px; height:78px; margin-top:8px; background:none; border:none; padding:0;
   background-size:100% 100%; background-repeat:no-repeat;   /* görsel script'te veriliyor */
   pointer-events:auto; cursor:pointer; -webkit-tap-highlight-color:transparent;
   filter:drop-shadow(0 3px 7px rgba(0,0,0,.4)); transition:transform .08s ease; }

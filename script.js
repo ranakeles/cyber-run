@@ -1615,6 +1615,22 @@ function aciklamaSigdir(){
   }
 }
 
+/* ---- "3'lü seri" ----
+   Türkçede sayıya gelen -li eki, sayının OKUNUŞUNDAKİ son ünlüye uyar:
+   üç→3'lü, dört→4'lü, beş→5'li, altı→6'lı, dokuz→9'lu, on→10'lu.
+   Rakamla yazılınca ek kesme işaretiyle ayrılır. Düz birleştirme
+   ("3li seri") bu yüzden yanlıştı; ek tablodan seçiliyor.
+   Son basamak 0 ise okunan son sözcük onlar/yüzler basamağıdır.        */
+const EK_BIRLER = ['', 'li','li','lü','lü','li','lı','li','li','lu'];      // bir…dokuz
+const EK_ONLAR  = ['', 'lu','li','lu','lı','li','lı','li','li','lı'];      // on…doksan
+function seriEki(n){
+  if(n % 10)   return EK_BIRLER[n % 10];
+  if(n % 100)  return EK_ONLAR[(n % 100) / 10];
+  if(n % 1000) return 'lü';                    // yüz
+  return 'li';                                 // bin
+}
+const seriYazisi = n => n + "'" + seriEki(n) + ' seri!';
+
 function flash(ok, m, delta){
   const f = $('#flash');
   cevapKartiKur(ok ? 'dogru' : 'yanlis');
@@ -1623,7 +1639,7 @@ function flash(ok, m, delta){
   // Can satırı sadece yanlış cevapta yazılır — can başka türlü değişmiyor
   const canYazi = ok ? '' : '  •  −1 can';
   $('#fPts').textContent = (delta>=0?'+':'')+delta+' puan' + canYazi
-                         + (ok&&streak>=3?'  •  '+streak+'li seri! 🔥':'');
+                         + (ok&&streak>=3 ? '  •  '+seriYazisi(streak)+' 🔥' : '');
   $('#fPts').style.color = delta>=0 ? '#1f7a34' : '#b3261e';
   aciklamaSigdir();
   f.classList.add('show');

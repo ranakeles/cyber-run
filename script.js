@@ -1401,6 +1401,25 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 
+/* Döngü TEK zincir olarak döner.
+   `loop` her karenin sonunda kendini yeniden sıraya koyuyor, yani bir kez
+   başladı mı hiç durmuyor. Ekran geçişleri (isim ekranı, oyunun başlaması)
+   eskiden her seferinde YENİ bir zincir başlatıyordu ama eskisi durmadığı
+   için zincirler birikiyordu: ilk oyunda kare başına 3, ikinci oyunda 5,
+   onuncu oyunda 21 kez çizim. Oynanış bozulmuyordu (ilk çağrı geçen süreyi
+   tüketiyor, kalanlara sıfır kalıyor) ama aynı görüntü boşuna defalarca
+   çiziliyordu. Kioskta çocuklar arka arkaya oynayacağı için bu birikim
+   oyunu yavaşlatırdı.
+   Zaman damgası yine de her çağrıda tazeleniyor: ekran geçişinde beklenen
+   süre oyuna tek seferde eklenmesin.                                      */
+let dongudeMi = false;
+function donguBaslat(){
+  lastTime = performance.now();
+  if(dongudeMi) return;
+  dongudeMi = true;
+  requestAnimationFrame(loop);
+}
+
 function startGame(){
   resize();
   plane.lane=0; plane.laneVis=0; plane.bob=0; plane.jumpY=0; plane.jumpV=0;
@@ -1417,7 +1436,7 @@ function startGame(){
   geriSayimIptal();          // önceki oyundan kalan sayım yeni oyunu başlatmasın
   $('#hud').classList.remove('hidden');
   nextFlight();
-  lastTime = performance.now(); requestAnimationFrame(loop);
+  donguBaslat();
 }
 
 // Bir sonraki soruya doğru koşu (oyun canla biter, soru sayısıyla değil)
@@ -1738,7 +1757,7 @@ function isimEkraniAc(){
   /* 'naming' durumunda sahne çiziliyor ve yavaşça akıyor: arkada donmuş bir
      kare durmasın. Oyun mantığı çalışmıyor, sadece manzara. */
   state = 'naming';
-  lastTime = performance.now(); requestAnimationFrame(loop);
+  donguBaslat();
 }
 function isimOnayla(){
   const ad = yazilanAd.trim();
@@ -1923,5 +1942,4 @@ resize();
   if(pb) pb.style.backgroundImage = 'url(' + assetURL('assets/pause_button.png') + ')';
 }
 state = 'idle';
-lastTime = performance.now();
-requestAnimationFrame(loop);
+donguBaslat();

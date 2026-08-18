@@ -35,7 +35,7 @@ MAP = {
     "assets/enter_name.png":   ("enter_name.png",    "image/png"),   # isim ekranı (klavye dahil)
     "assets/pause_card.png":   ("pause_card.png",    "image/png"),   # duraklama kartı (şeffaf)
     "assets/pause_button.png": ("pause_button.png",  "image/png"),   # HUD duraklatma butonu
-    "assets/end_page5.png":     ("end_page5.jpg",     "image/jpeg"),   # bitiş ekranı tasarımı
+    "assets/end_page6.png":     ("end_page6.jpg",     "image/jpeg"),   # bitiş ekranı tasarımı
     "assets/wall_strip.png":    ("wall_strip.png",    "image/png"),
     "assets/wall_strip2.png":   ("wall_strip2.png",   "image/png"),
     "assets/wall_front.png":    ("wall_front.png",    "image/png"),

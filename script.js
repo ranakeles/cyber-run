@@ -1783,7 +1783,7 @@ window.addEventListener('keydown', e => {
    sırasıyla en alta eklenir — yoksa çocuk kendi puanını hiç göremezdi.
    `kayit` bu oyunun kaydı (nesne kimliğiyle bulunur, aynı puanlı başka
    satırla karışmaz), `sira` ise listeye eklendikten sonraki 0 tabanlı sırası. */
-const LB_SATIR = 8;          // panelde kaç sıra (end_page5 paneli daha büyük)
+const LB_SATIR = 8;          // panelde kaç sıra (end_page6 paneli)
 function renderLb(target, kayit, sira){
   const sirali = LB.slice().sort((a,b)=>b.sc-a.sc);
   const satirlar = sirali.slice(0, LB_SATIR).map((r,i)=>({ r, i }));
@@ -1927,7 +1927,7 @@ resize();
   if(a) a.src = home;
   if(b) b.src = home;
   // Bitiş ekranı tasarımı: sahnenin zemini + arkasında bulanık kopya
-  const son = assetURL('assets/end_page5.png');
+  const son = assetURL('assets/end_page6.png');
   const es = $('#endStage'), eb = $('#endBg');
   if(es) es.style.backgroundImage = 'url(' + son + ')';
   if(eb) eb.src = son;

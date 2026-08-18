@@ -168,18 +168,24 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
   cursor:pointer; -webkit-tap-highlight-color:transparent; }
 
 /* ================= BİTİŞ EKRANI =================
-   Tasarımın tamamı end_page5.png. Sahne, görselin en-boy oranıyla (853:1844)
+   Tasarımın tamamı end_page6.png. Sahne, görselin en-boy oranıyla (853:1844)
    script'te ölçülendirilir; içindeki her kutu SAHNENİN yüzdesi olarak
    konumlanır, böylece hangi ekranda olursa olsun görselin üstüne oturur.
    Yüzdeler görselin pikselleri taranarak ÖLÇÜLDÜ — görsel değişirse
    yeniden ölçülmeli. Yazı boyu da sahne yüksekliğine bağlı (font-size
-   script'te veriliyor), yani ekranla birlikte büyüyüp küçülür.          */
+   script'te veriliyor), yani ekranla birlikte büyüyüp küçülür.
+
+   end_page6.png (853x1844) içinde ölçülen ham piksel kutuları:
+     kurdele      x 153-701  y  296- 432
+     skor tablosu x 206-645  y  520-1071
+     ANA SAYFA    x  47-406  y 1628-1734
+     TEKRAR DENE  x 442-809  y 1627-1735                                */
 .end-stage{ position:relative; z-index:1; background-size:100% 100%; background-repeat:no-repeat;
   filter:drop-shadow(0 10px 40px rgba(0,0,0,.5)); }
 /* Kurdele: sadece skor. Rakamlar HUD'dakiyle aynı görselden dizilir. */
-.end-skor{ position:absolute; left:14.89%; width:70.22%; top:17.46%; height:6.29%; }
+.end-skor{ position:absolute; left:17.94%; width:64.36%; top:16.05%; height:7.43%; }
 /* SKOR TABLOSU paneli — oynayanların sıralaması */
-.end-lb{ position:absolute; left:18.17%; width:63.78%; top:32.54%; height:26.68%;
+.end-lb{ position:absolute; left:24.15%; width:51.58%; top:28.20%; height:29.93%;
   display:flex; flex-direction:column; justify-content:space-evenly;
   padding:2.5% 5.5%; font-family:var(--hud); color:#1f3a63; }
 .lb-satir{ display:flex; align-items:center; gap:.5em; font-size:.95em; line-height:1; }
@@ -195,9 +201,9 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 /* Görseldeki butonların üstündeki görünmez dokunma alanları */
 .end-hit{ position:absolute; background:none; border:none; padding:0; cursor:pointer;
   -webkit-tap-highlight-color:transparent; border-radius:99px; }
-/* Butonlar yan yana (end_page5'ten ölçüldü) */
-.end-home { left:9.85%;  width:37.51%; top:88.83%; height:4.66%; }
-.end-again{ left:50.18%; width:38.68%; top:88.77%; height:4.89%; }
+/* Butonlar yan yana (end_page6'dan ölçüldü) */
+.end-home { left:5.51%;  width:42.20%; top:88.29%; height:5.80%; }
+.end-again{ left:51.82%; width:43.14%; top:88.23%; height:5.91%; }
 /* ================= İSİM GİRİŞİ =================
    Tasarımın tamamı enter_name.png — klavye dahil GÖRSELDE çizili. Kod
    yalnızca yazılan ismi kutuya yazıyor ve tuşların üstüne görünmez dokunma

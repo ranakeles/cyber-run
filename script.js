@@ -1602,20 +1602,29 @@ function decide(decision){
 /* Üç kart: doğru ve yanlış answers.png'nin iki yarısında, kaçırılan soru
    ise kendi dosyasında (missed_question.png). Hepsinin yapısı aynı:
    büyük açıklama kutusu + altında puan şeridi.                           */
+/* `kart` = görselde kartın kapladığı DIŞ sınır; arka plan bu dikdörtgene
+   göre ölçeklenip kaydırılıyor, yani bu kutu neresi ise ekranda o görünüyor.
+   Bir ara bu kutular kartın biraz İÇİNDEN ölçülmüştü: üstteki yuvarlağın
+   ucundan 10-12 piksel, kaçırıldı kartının sağından 58 piksel kesiliyordu.
+   Kesilen yer şeffaf kenar değil, tam opak çizimdi.
+   Değerler alfa kanalı taranarak yeniden ölçüldü (gövde = alfa>200, kenara
+   1 piksel pay): iki kartın arasında 9 piksellik boşluk var, paylar oraya
+   taşmıyor.                                                              */
 const CEVAP_YERI = {
   dogru:  { src:'assets/answers.png', W:1536, H:1024,
-            kart:{x:46,  y:123, w:714,  h:732},
+            kart:{x:37,  y:113, w:734,  h:760},
             aciklama:{x:102, y:519, w:601, h:143},
             puan:{x:214, y:706, w:377, h:79} },
   yanlis: { src:'assets/answers.png', W:1536, H:1024,
-            kart:{x:786, y:122, w:704,  h:742},
+            kart:{x:778, y:113, w:720,  h:760},
             aciklama:{x:842, y:518, w:589, h:145},
             puan:{x:954, y:708, w:365, h:79} },
   /* Kaçırıldı kartı ENİNE bir tasarım; diğerleriyle aynı genişlikte
      çizilince yüksekliği düşük kalıyor ve gözle daha küçük görünüyor
-     (alanı diğerlerinin ~%74'ü). Eşit görünsün diye biraz büyütülüyor. */
-  kacti:  { src:'assets/missed_question.png', W:1536, H:1024, olcek:1.16,
-            kart:{x:151, y:43,  w:1182, h:899},
+     (alanı diğerlerinin ~%72'si). Eşit görünsün diye biraz büyütülüyor —
+     ölçek, iki kartın kapladığı ALAN eşitlensin diye hesaplandı. */
+  kacti:  { src:'assets/missed_question.png', W:1536, H:1024, olcek:1.178,
+            kart:{x:143, y:30,  w:1249, h:932},
             aciklama:{x:314, y:582, w:899, h:161},
             puan:{x:490, y:786, w:535, h:75} }
 };

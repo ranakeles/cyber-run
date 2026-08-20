@@ -209,6 +209,43 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 /* Butonlar yan yana (end_page7'den ölçüldü) */
 .end-home { left:5.51%;  width:42.20%; top:88.34%; height:5.80%; }
 .end-again{ left:51.82%; width:43.14%; top:88.29%; height:5.91%; }
+/* ================= KARAKTER SEÇİMİ =================
+   Tasarımın tamamı character_page.png (1023x1537). Kod yalnızca iki
+   madalyonun üstüne görünmez dokunma alanı koyuyor; madalyonlar görselin
+   pikselleri taranarak ÖLÇÜLDÜ (altın halka rengine göre):
+     OĞLAN  x  34-504  y 638-1125
+     KIZ    x 521-988  y 639-1118
+   Görsel değişirse yeniden ölçülmeli.                                    */
+.char-stage{ position:relative; z-index:1; background-size:100% 100%; background-repeat:no-repeat;
+  filter:drop-shadow(0 10px 40px rgba(0,0,0,.5)); }
+.char-hit{ position:absolute; background:none; border:none; padding:0; cursor:pointer;
+  -webkit-tap-highlight-color:transparent; border-radius:50%;
+  transition:transform .1s ease; }
+/* Dokununca madalyon hafifçe büyür: çocuk seçtiğini hissetsin */
+.char-hit:active{ transform:scale(1.06); }
+.char-boy { left:3.32%;  width:46.04%; top:41.51%; height:31.75%; }
+.char-girl{ left:50.93%; width:45.75%; top:41.57%; height:31.23%; }
+
+/* ---------- KIZ KARAKTER SEÇİLİYKEN ----------
+   Kızın duraklama kartı ve bitiş ekranı AYRI görseller; ikisinin de kutuları
+   kendi görsellerinden ayrıca ÖLÇÜLDÜ, oğlanınkiler bunlara oturmuyor.
+   Görselleri script veriyor, kutular burada.
+
+   pause_card_girl.png (1199x1312):
+     DEVAM ET   x 241-900  y 654-838
+     ANA SAYFA  x 237-905  y 911-1093
+   end_page_girl.png (853x1844):
+     kurdele      x 181-674  y  303- 417   (yalnızca AÇIK bant — bkz. bitiş ekranı notu)
+     skor tablosu x 210-641  y  517-1065
+     ANA SAYFA    x  49-407  y 1627-1732
+     TEKRAR DENE  x 442-804  y 1626-1734                                  */
+body.kiz .pause-resume{ left:20.10%; width:55.05%; top:49.85%; height:14.10%; }
+body.kiz .pause-home  { left:19.77%; width:55.80%; top:69.44%; height:13.95%; }
+body.kiz .end-skor{ left:21.22%; width:57.91%; top:16.43%; height:6.24%; }
+body.kiz .end-lb  { left:24.62%; width:50.64%; top:28.04%; height:29.77%; }
+body.kiz .end-home { left:5.74%;  width:42.09%; top:88.23%; height:5.75%; }
+body.kiz .end-again{ left:51.82%; width:42.56%; top:88.18%; height:5.91%; }
+
 /* ================= İSİM GİRİŞİ =================
    Tasarımın tamamı enter_name.png — klavye dahil GÖRSELDE çizili. Kod
    yalnızca yazılan ismi kutuya yazıyor ve tuşların üstüne görünmez dokunma

@@ -276,6 +276,27 @@ loadImageWhiteKeyed('child', 'assets/child.png');
 const RUN_KEYS = ['child','child3','child2','child4'];
 ['child2','child3','child4'].forEach(k => loadImageWhiteKeyed(k, 'assets/'+k+'.png'));
 
+/* ---- Kız karakterin kareleri ----
+   Oğlanın kareleri düz beyaz zeminli geldiği için temizleyiciden geçiyor;
+   kızınkiler ZATEN şeffaf, o yüzden düz yükleyiciyle alınıyor. Temizleyiciyi
+   şeffaf görsele uygulamak gereksiz risk (uçaklarda beyaz gövdeyi yemişti). */
+const RUN_KEYS_KIZ = ['girl','girl3','girl2','girl4'];
+RUN_KEYS_KIZ.forEach(k => loadImage(k, 'assets/'+k+'.png'));
+
+/* ================= KARAKTER =================
+   Çocuk başlangıçta karakterini seçiyor; seçim üç şeyi birden belirliyor:
+   koşu kareleri, duraklama kartı ve bitiş ekranı. Kartların BUTON KUTULARI
+   da karaktere göre değişiyor (iki görselin ölçüleri farklı) — o kısım
+   style.css'teki `body.kiz` kurallarında.                                */
+const KARAKTER = {
+  oglan: { kareler:RUN_KEYS,     mola:'assets/pause_card.png',
+           molaAr:1122/1402,     bitis:'assets/end_page7.png' },
+  kiz:   { kareler:RUN_KEYS_KIZ, mola:'assets/pause_card_girl.png',
+           molaAr:1199/1312,     bitis:'assets/end_page_girl.png' }
+};
+let karakter = 'oglan';                 // seçilmezse oğlanla başlar
+let MOLA_AR_AKTIF = KARAKTER.oglan.molaAr;
+
 /* ================= KATMANLI SAHNE GÖRSELLERİ =================
    bg_far (gökyüzü+uzak şehir) + ground_tile (tam genişlik zemin) varsa
    oyun katmanlı moda geçer: zemin akar, binalar/ağaçlar yanından geçer.
@@ -388,7 +409,7 @@ function drawCover(img){
 const STAGE_AR = 941/1672;   // sokak görselinin oranı (~9:16). Sahne bu orana kilitli.
 const END_AR = 853/1844;     // bitiş ekranı tasarımının oranı (daha dar)
 const AD_AR  = 1024/1536;    // isim ekranı tasarımının oranı (daha geniş)
-const MOLA_AR = 1122/1402;   // duraklama kartının oranı (tam ekran değil, kart)
+const SECIM_AR = 1023/1537;  // karakter seçim ekranı tasarımının oranı
 /* Kart tam ekranı kaplamaz: oyun sahnesinin genişliğinin bu kadarını kaplar.
    Sabit piksel verilseydi küçük ekranda taşar, kioskta minicik kalırdı. */
 const MOLA_GENISLIK = 0.80;  // sahne genişliğinin oranı
@@ -430,9 +451,17 @@ function resize(){
      Önce genişlikten hesaplanır, sahneye sığmazsa yükseklikten kısılır. */
   const ps = document.getElementById('pauseStage');
   if(ps){
-    let pw = W * MOLA_GENISLIK, ph = pw / MOLA_AR;
-    if(ph > H * MOLA_YUKSEKLIK){ ph = H * MOLA_YUKSEKLIK; pw = ph * MOLA_AR; }
+    // Oran seçili karakterin kartından gelir: iki kartın ölçüleri farklı
+    let pw = W * MOLA_GENISLIK, ph = pw / MOLA_AR_AKTIF;
+    if(ph > H * MOLA_YUKSEKLIK){ ph = H * MOLA_YUKSEKLIK; pw = ph * MOLA_AR_AKTIF; }
     ps.style.width = pw+'px'; ps.style.height = ph+'px';
+  }
+  // Karakter seçim ekranı da kendi oranıyla: madalyonlar görselin üstüne otursun
+  const cs = document.getElementById('charStage');
+  if(cs){
+    let cw = window.innerWidth, ch = window.innerHeight;
+    if(cw/ch > SECIM_AR) cw = ch*SECIM_AR; else ch = cw/SECIM_AR;
+    cs.style.width = cw+'px'; cs.style.height = ch+'px';
   }
   ctx.setTransform(DPR,0,0,DPR,0,0);
   // perspektif değerleri computePerspective() içinde hesaplanıyor
@@ -1083,7 +1112,7 @@ function drawRunner(){
   const squash = (1 - 0.07*(1-lift)*(1-jAir)) * (1 + 0.10*jAir);
   const widen  = (1 + 0.05*(1-lift)*(1-jAir)) * (1 - 0.05*jAir);
 
-  const frames = RUN_KEYS.filter(k => IMAGES[k]);
+  const frames = KARAKTER[karakter].kareler.filter(k => IMAGES[k]);
   if(frames.length){
     // Bir tam adım çifti (stride) = 2π. Kareler bu süreye eşit bölünür:
     // 2 kare → adım başına 1 kare, 4 kare → adım başına 2 kare.
@@ -1757,11 +1786,42 @@ function adYaz(harf){
 }
 function adSil(){ yazilanAd = yazilanAd.slice(0, -1); adGuncelle(); }
 
+/* ---------- KARAKTER SEÇİMİ ----------
+   Seçilen karakter üç şeyi birden değiştiriyor: koşu kareleri (drawRunner
+   `KARAKTER[karakter].kareler` okuyor), duraklama kartı ve bitiş ekranı.
+   Kartların buton kutuları da farklı; onları `body.kiz` CSS kuralları
+   hallediyor, burada sadece sınıfı koyuyoruz.                            */
+function karakterUygula(){
+  const k = KARAKTER[karakter];
+  document.body.classList.toggle('kiz', karakter === 'kiz');
+  MOLA_AR_AKTIF = k.molaAr;
+  const ps = $('#pauseStage');
+  if(ps) ps.style.backgroundImage = 'url(' + assetURL(k.mola) + ')';
+  const son = assetURL(k.bitis);
+  const es = $('#endStage'), eb = $('#endBg');
+  if(es) es.style.backgroundImage = 'url(' + son + ')';
+  if(eb) eb.src = son;
+  resize();                 // kartın oranı değişti, yeniden ölçülendir
+}
+function karakterSec(k){
+  karakter = k;
+  karakterUygula();
+  $('#charScreen').classList.add('hidden');
+  isimEkraniAc();
+}
+function karakterEkraniAc(){
+  $('#startScreen').classList.add('hidden');
+  $('#endScreen').classList.add('hidden');
+  $('#charScreen').classList.remove('hidden');
+  resize();                 // gizliyken ölçü alınamıyor
+}
+
 function isimEkraniAc(){
   klavyeKur();
   yazilanAd = ''; adGuncelle();
   $('#startScreen').classList.add('hidden');
   $('#endScreen').classList.add('hidden');
+  $('#charScreen').classList.add('hidden');
   $('#nameScreen').classList.remove('hidden');
   /* 'naming' durumunda sahne çiziliyor ve yavaşça akıyor: arkada donmuş bir
      kare durmasın. Oyun mantığı çalışmıyor, sadece manzara. */
@@ -1837,8 +1897,10 @@ function endGame(){
 // Butonlar
 $('#zoneSafe').addEventListener('click', ()=> decide('safe'));
 $('#zoneDanger').addEventListener('click', ()=> decide('danger'));
-// OYNA → önce isim, sonra oyun (BAŞLA/Tamam tuşları klavyeKur içinde bağlanır)
-$('#startBtn').addEventListener('click', isimEkraniAc);
+// OYNA → karakter seçimi → isim → oyun (BAŞLA/Tamam tuşları klavyeKur içinde bağlanır)
+$('#startBtn').addEventListener('click', karakterEkraniAc);
+$('#pickBoy').addEventListener('click',  ()=> karakterSec('oglan'));
+$('#pickGirl').addEventListener('click', ()=> karakterSec('kiz'));
 /* Bitiş ekranındaki İKİ buton da başlangıç ekranına döner.
    Kioskta sıradaki çocuk doğal olarak "TEKRAR DENE"ye basıyor; oradan
    doğrudan oyun başlasaydı bir önceki çocuğun adıyla oynardı ve skor
@@ -1847,6 +1909,7 @@ $('#startBtn').addEventListener('click', isimEkraniAc);
 function anaSayfayaDon(){
   $('#endScreen').classList.add('hidden');
   $('#nameScreen').classList.add('hidden');
+  $('#charScreen').classList.add('hidden');
   $('#startScreen').classList.remove('hidden');
   state = 'idle';
 }
@@ -1931,24 +1994,26 @@ window.addEventListener('keydown', e=>{
 resize();
 {
   // Başlangıç ekranı: kullanıcının hazırladığı tam ekran tasarım
-  const home = assetURL('assets/home_page2.png');
+  // Başlangıç ekranı: iki karakter birlikte (seçim burada değil, sonraki ekranda)
+  const home = assetURL('assets/home_page3.png');
   const a = $('#homeImg'), b = $('#homeBg');
   if(a) a.src = home;
   if(b) b.src = home;
-  // Bitiş ekranı tasarımı: sahnenin zemini + arkasında bulanık kopya
-  const son = assetURL('assets/end_page7.png');
-  const es = $('#endStage'), eb = $('#endBg');
-  if(es) es.style.backgroundImage = 'url(' + son + ')';
-  if(eb) eb.src = son;
   // İsim ekranı tasarımı (klavye dahil görselin içinde)
   const isim = assetURL('assets/enter_name.png');
   const ns = $('#nameStage'), nb = $('#nameBg');
   if(ns) ns.style.backgroundImage = 'url(' + isim + ')';
   if(nb) nb.src = isim;
-  // Duraklama kartı ve HUD'daki duraklatma butonu (ikisi de şeffaf zeminli)
-  const ps = $('#pauseStage'), pb = $('#pauseBtn');
-  if(ps) ps.style.backgroundImage = 'url(' + assetURL('assets/pause_card.png') + ')';
+  // Karakter seçim ekranı tasarımı
+  const sec = assetURL('assets/character_page.png');
+  const cs = $('#charStage'), cb = $('#charBg');
+  if(cs) cs.style.backgroundImage = 'url(' + sec + ')';
+  if(cb) cb.src = sec;
+  // HUD'daki duraklatma butonu (karaktere göre değişmiyor)
+  const pb = $('#pauseBtn');
   if(pb) pb.style.backgroundImage = 'url(' + assetURL('assets/pause_button.png') + ')';
+  // Duraklama kartı ve bitiş ekranı KARAKTERE bağlı — varsayılanı kur
+  karakterUygula();
 }
 state = 'idle';
 donguBaslat();

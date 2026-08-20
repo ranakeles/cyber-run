@@ -279,8 +279,16 @@ const RUN_KEYS = ['child','child3','child2','child4'];
 /* ---- Kız karakterin kareleri ----
    Oğlanın kareleri düz beyaz zeminli geldiği için temizleyiciden geçiyor;
    kızınkiler ZATEN şeffaf, o yüzden düz yükleyiciyle alınıyor. Temizleyiciyi
-   şeffaf görsele uygulamak gereksiz risk (uçaklarda beyaz gövdeyi yemişti). */
-const RUN_KEYS_KIZ = ['girl','girl3','girl2','girl4'];
+   şeffaf görsele uygulamak gereksiz risk (uçaklarda beyaz gövdeyi yemişti).
+
+   SIRA OĞLANIN SIRASI DEĞİL — dosya adı sırası. Sebebi kareler farklı
+   üretildi: oğlanda child/child2 temas, child3/child4 geçiş kareleri olduğu
+   için araya sokuluyor. Kızda girl/girl2 ters ayaklı bir çift, girl3/girl4
+   ise sırasıyla girl/girl2'nin daha GENİŞ hâli — yani aynı ayak. Araya
+   sokulunca aynı ayak iki kare üst üste kalıyor ve koşu, adım atmak yerine
+   ayağı yerde sürüyormuş gibi (hatta geri gidiyormuş gibi) görünüyor.
+   Kritik olan her karede ayağın DEĞİŞMESİ: sağ-sol-sağ-sol.             */
+const RUN_KEYS_KIZ = ['girl','girl2','girl3','girl4'];
 RUN_KEYS_KIZ.forEach(k => loadImage(k, 'assets/'+k+'.png'));
 
 /* ================= KARAKTER =================

@@ -27,7 +27,7 @@ print("Kaynak klasör:", SRC)
 MAP = {
     "assets/bg_far.png":        ("bg_far.jpg",        "image/jpeg"),
     "assets/ground_tile.png":   ("ground_tile.jpg",   "image/jpeg"),
-    "assets/home_page2.png":    ("home_page2.jpg",    "image/jpeg"),
+    "assets/home_page3.png":    ("home_page3.jpg",    "image/jpeg"),   # iki karakter birlikte
     "assets/missed_question.png":("missed_question.png","image/png"),  # kaçırılan soru kartı
     "assets/answers.png":      ("answers.png",      "image/png"),   # doğru/yanlış kartları
     "assets/mail_body.png":    ("mail_body.png",    "image/png"),   # e-posta kartı (eksiz)
@@ -35,7 +35,10 @@ MAP = {
     "assets/enter_name.png":   ("enter_name.png",    "image/png"),   # isim ekranı (klavye dahil)
     "assets/pause_card.png":   ("pause_card.png",    "image/png"),   # duraklama kartı (şeffaf)
     "assets/pause_button.png": ("pause_button.png",  "image/png"),   # HUD duraklatma butonu
-    "assets/end_page7.png":     ("end_page7.jpg",     "image/jpeg"),   # bitiş ekranı tasarımı
+    "assets/pause_card_girl.png":("pause_card_girl.png","image/png"), # duraklama kartı (kız)
+    "assets/end_page7.png":     ("end_page7.jpg",     "image/jpeg"),   # bitiş ekranı (oğlan)
+    "assets/end_page_girl.png": ("end_page_girl.jpg", "image/jpeg"),   # bitiş ekranı (kız)
+    "assets/character_page.png":("character_page.jpg","image/jpeg"),   # karakter seçim ekranı
     "assets/wall_strip.png":    ("wall_strip.png",    "image/png"),
     "assets/wall_strip2.png":   ("wall_strip2.png",   "image/png"),
     "assets/wall_front.png":    ("wall_front.png",    "image/png"),
@@ -43,6 +46,10 @@ MAP = {
     "assets/child2.png":        ("child2.png",        "image/png"),
     "assets/child3.png":        ("child3.png",        "image/png"),
     "assets/child4.png":        ("child4.png",        "image/png"),
+    "assets/girl.png":          ("girl.png",          "image/png"),   # kız koşu kareleri
+    "assets/girl2.png":         ("girl2.png",         "image/png"),
+    "assets/girl3.png":         ("girl3.png",         "image/png"),
+    "assets/girl4.png":         ("girl4.png",         "image/png"),
     "assets/prop_tree.png":     ("prop_tree.png",     "image/png"),
     "assets/prop_lamp.png":     ("prop_lamp.png",     "image/png"),
     "assets/prop_bollard.png":  ("prop_bollard.png",  "image/png"),
@@ -109,6 +116,13 @@ js = js.replace(
     "loadImageKeyed('building_a','assets/building_a.png');\n"
     "loadImageKeyed('building_b','assets/building_b.png');\n"
     "loadImageKeyed('building_c','assets/building_c.png');")
+#    Kızın koşu kareleri de aynı şekilde birleştirilen bir yol kullanıyor.
+js = js.replace(
+    "RUN_KEYS_KIZ.forEach(k => loadImage(k, 'assets/'+k+'.png'));",
+    "loadImage('girl','assets/girl.png');\n"
+    "loadImage('girl2','assets/girl2.png');\n"
+    "loadImage('girl3','assets/girl3.png');\n"
+    "loadImage('girl4','assets/girl4.png');")
 # 1) Sürüm damgası gereksiz (data: URI'ye ?v= eklenemez)
 js = js.replace("const ASSET_V = '?v=' + Date.now();", "const ASSET_V = '';")
 # 2) CSS artık gömülü; link tazeleme bloğunu çıkar

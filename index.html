@@ -58,6 +58,19 @@
   <button id="startBtn" class="home-hit" aria-label="Oyna"></button>
 </div>
 
+<!-- ================= KARAKTER SEÇİMİ =================
+     OYNA'ya basınca açılır, isim ekranından ÖNCE gelir. Tasarımın tamamı
+     character_page.png; kod yalnızca iki madalyonun üstüne görünmez dokunma
+     alanı koyuyor. Seçilen karakter koşu karelerini, duraklama kartını ve
+     bitiş ekranını birden belirliyor. -->
+<div id="charScreen" class="overlay home hidden">
+  <img id="charBg" class="home-bg" alt="" aria-hidden="true">
+  <div class="char-stage" id="charStage">
+    <button class="char-hit char-boy"  id="pickBoy"  aria-label="Erkek karakter"></button>
+    <button class="char-hit char-girl" id="pickGirl" aria-label="Kız karakter"></button>
+  </div>
+</div>
+
 <!-- ================= İSİM GİRİŞİ =================
      OYNA'ya basınca açılır, oyun bundan sonra başlar. Klavye kodla kurulur
      (script.js KLAVYE dizisi) — tuşların basılma durumu ve Türkçe harfler

@@ -220,6 +220,12 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
      kız kartı    x 786-1423  y    1-1003   butonu x 867-1341 y 833-937
    İki kartın buton yüzdesi %0.2'den az farklı (≈1 piksel), o yüzden tek
    kural ikisine de yetiyor. Görsel değişirse yeniden ölçülmeli.          */
+/* Kartın arkası OYUN DEĞİL, düz renk. Oyun henüz başlamadı; arkada donmuş
+   sokağı göstermek "başladı ama duruyor" gibi okunuyordu. Renk karakter
+   seçim ekranının zemininden ölçüldü (#002292), böylece iki ekran aynı
+   aileden görünüyor. Duraklama kartı bu sınıfı ALMIYOR — orada arkadaki
+   oyunun görünmesi bilinçli.                                             */
+.how-overlay{ background:#002292; backdrop-filter:none; }
 .how-stage{ background-size:auto; }        /* konum/ölçek script'ten gelir */
 .how-start{ left:12.66%; width:74.38%; top:83.10%; height:10.50%; }
 

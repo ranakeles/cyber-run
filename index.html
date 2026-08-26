@@ -85,6 +85,18 @@
   </div>
 </div>
 
+<!-- ================= NASIL OYNANIR =================
+     İsim girişinden sonra, koşu başlamadan önce açılır. Tam ekran değil,
+     duraklama kartı gibi popup. İki kart tek görselde (how_to_play2.png):
+     solda oğlan, sağda kız — seçilen karaktere göre yarısı gösteriliyor
+     (kalp şeridi ve cevap kartlarındaki yöntem). Kutular script'teki
+     NASIL_YERI tablosundan gelir, o da görselden ölçüldü. -->
+<div id="howScreen" class="pause-overlay hidden">
+  <div class="pause-stage how-stage" id="howStage">
+    <button class="pause-hit how-start" id="howStartBtn" aria-label="Hadi başla"></button>
+  </div>
+</div>
+
 <!-- ================= SORU EKRANI (uçuş sırasında açılır) ================= -->
 <div id="questionScreen" class="q-overlay hidden">
   <!-- Kart ve butonlar görselde çizili (mail_body.png / mail_file.png).

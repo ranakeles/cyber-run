@@ -39,6 +39,7 @@ MAP = {
     "assets/end_page7.png":     ("end_page7.jpg",     "image/jpeg"),   # bitiş ekranı (oğlan)
     "assets/end_page_girl.png": ("end_page_girl.jpg", "image/jpeg"),   # bitiş ekranı (kız)
     "assets/character_page.png":("character_page.jpg","image/jpeg"),   # karakter seçim ekranı
+    "assets/how_to_play2.png": ("how_to_play2.png",  "image/png"),   # nasıl oynanır (2 kart)
     "assets/wall_strip.png":    ("wall_strip.png",    "image/png"),
     "assets/wall_strip2.png":   ("wall_strip2.png",   "image/png"),
     "assets/wall_front.png":    ("wall_front.png",    "image/png"),

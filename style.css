@@ -209,6 +209,20 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 /* Butonlar yan yana (end_page7'den ölçüldü) */
 .end-home { left:5.51%;  width:42.20%; top:88.34%; height:5.80%; }
 .end-again{ left:51.82%; width:43.14%; top:88.29%; height:5.91%; }
+/* ================= NASIL OYNANIR =================
+   Duraklama kartıyla aynı kabuğu kullanıyor (.pause-overlay/.pause-stage),
+   yalnızca arka plan konumu ve buton kutusu farklı. İki kart TEK görselde
+   olduğu için arka plan ölçeklenip kaydırılarak yarısı gösteriliyor;
+   ölçüleri script'teki NASIL_YERI veriyor (inline stil).
+
+   how_to_play2.png (1536x1024) içinde ölçülen ham piksel kutuları:
+     oğlan kartı  x  75- 714  y    2-1001   butonu x 156- 631 y 833-937
+     kız kartı    x 786-1423  y    1-1003   butonu x 867-1341 y 833-937
+   İki kartın buton yüzdesi %0.2'den az farklı (≈1 piksel), o yüzden tek
+   kural ikisine de yetiyor. Görsel değişirse yeniden ölçülmeli.          */
+.how-stage{ background-size:auto; }        /* konum/ölçek script'ten gelir */
+.how-start{ left:12.66%; width:74.38%; top:83.10%; height:10.50%; }
+
 /* ================= KARAKTER SEÇİMİ =================
    Tasarımın tamamı character_page.png (1023x1537). Kod yalnızca iki
    madalyonun üstüne görünmez dokunma alanı koyuyor; madalyonlar görselin

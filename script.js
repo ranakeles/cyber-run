@@ -464,6 +464,8 @@ function resize(){
     if(ph > H * MOLA_YUKSEKLIK){ ph = H * MOLA_YUKSEKLIK; pw = ph * MOLA_AR_AKTIF; }
     ps.style.width = pw+'px'; ps.style.height = ph+'px';
   }
+  // NASIL OYNANIR kartı açıksa yeniden ölçülendir (kendi tablosundan)
+  if(!document.getElementById('howScreen').classList.contains('hidden')) nasilOynanirAc();
   // Karakter seçim ekranı da kendi oranıyla: madalyonlar görselin üstüne otursun
   const cs = document.getElementById('charStage');
   if(cs){
@@ -1470,6 +1472,7 @@ function startGame(){
   updateHud();
   $('#startScreen').classList.add('hidden'); $('#endScreen').classList.add('hidden');
   $('#pauseScreen').classList.add('hidden');
+  $('#howScreen').classList.add('hidden');
   geriSayimIptal();          // önceki oyundan kalan sayım yeni oyunu başlatmasın
   $('#hud').classList.remove('hidden');
   nextFlight();
@@ -1794,6 +1797,33 @@ function adYaz(harf){
 }
 function adSil(){ yazilanAd = yazilanAd.slice(0, -1); adGuncelle(); }
 
+/* ---------- NASIL OYNANIR ----------
+   İki kart TEK görselde (how_to_play2.png): solda oğlan, sağda kız.
+   Cevap kartlarındaki yöntemle arka plan ölçeklenip kaydırılıyor, böylece
+   yalnızca seçili karakterin kartı görünüyor. Kutular görselden ÖLÇÜLDÜ. */
+const NASIL_SRC = 'assets/how_to_play2.png';
+const NASIL_YERI = {
+  W:1536, H:1024,
+  oglan: { x:74,  y:1, w:642, h:1002 },
+  kiz:   { x:785, y:0, w:640, h:1005 }
+};
+function nasilOynanirAc(){
+  const y = NASIL_YERI[karakter] || NASIL_YERI.oglan;
+  const kart = $('#howStage'); if(!kart) return;
+  /* Duraklama kartıyla aynı ölçülendirme: sahne genişliğine oranlı, gerekirse
+     yükseklikten kısılır. Sabit piksel küçük ekranda taşıyor. */
+  const taban = (W > 0 ? W : window.innerWidth);
+  let kw = taban * MOLA_GENISLIK, kh = kw * y.h / y.w;
+  if(kh > H * MOLA_YUKSEKLIK){ kh = H * MOLA_YUKSEKLIK; kw = kh * y.w / y.h; }
+  kart.style.width = kw+'px'; kart.style.height = kh+'px';
+  const s = kw / y.w;                       // görselden ekrana ölçek
+  kart.style.backgroundImage    = 'url(' + assetURL(NASIL_SRC) + ')';
+  kart.style.backgroundSize     = (NASIL_YERI.W*s)+'px '+(NASIL_YERI.H*s)+'px';
+  kart.style.backgroundPosition = (-y.x*s)+'px '+(-y.y*s)+'px';
+  $('#howScreen').classList.remove('hidden');
+}
+function nasilOynanirKapat(){ $('#howScreen').classList.add('hidden'); }
+
 /* ---------- KARAKTER SEÇİMİ ----------
    Seçilen karakter üç şeyi birden değiştiriyor: koşu kareleri (drawRunner
    `KARAKTER[karakter].kareler` okuyor), duraklama kartı ve bitiş ekranı.
@@ -1815,6 +1845,7 @@ function karakterSec(k){
   karakter = k;
   karakterUygula();
   $('#charScreen').classList.add('hidden');
+  $('#howScreen').classList.add('hidden');
   isimEkraniAc();
 }
 function karakterEkraniAc(){
@@ -1841,7 +1872,16 @@ function isimOnayla(){
   if(ad.length < AD_MIN) return;
   playerName = ad;
   $('#nameScreen').classList.add('hidden');
+  /* Oyun burada değil, NASIL OYNANIR kartındaki HADİ BAŞLA'da başlıyor. */
+  nasilOynanirAc();
+}
+/* HADİ BAŞLA: kart kapanır, oyun kurulur ama 3-2-1 boyunca donuk bekler.
+   Bir anda başlaması tatsızdı — çocuk daha ekrana bakmadan engel geliyordu. */
+function oyunuBaslat(){
+  nasilOynanirKapat();
   startGame();
+  state = 'paused';           // sahne kurulu ama donuk
+  geriSayimBaslat();          // sıfıra inince state='flying'
 }
 /* Geliştirirken (ve varsa gerçek klavyede) yazmayı da destekle */
 window.addEventListener('keydown', e => {
@@ -1909,6 +1949,7 @@ $('#zoneDanger').addEventListener('click', ()=> decide('danger'));
 $('#startBtn').addEventListener('click', karakterEkraniAc);
 $('#pickBoy').addEventListener('click',  ()=> karakterSec('oglan'));
 $('#pickGirl').addEventListener('click', ()=> karakterSec('kiz'));
+$('#howStartBtn').addEventListener('click', oyunuBaslat);
 /* Bitiş ekranındaki İKİ buton da başlangıç ekranına döner.
    Kioskta sıradaki çocuk doğal olarak "TEKRAR DENE"ye basıyor; oradan
    doğrudan oyun başlasaydı bir önceki çocuğun adıyla oynardı ve skor
@@ -1948,7 +1989,9 @@ function geriSayimIptal(){
   sayimNo++; sayiliyor = false;
   $('#countScreen').classList.add('hidden');
 }
-function geriSayimBaslat(){
+/* `bitince` sayım sıfıra inince çalışır. İki yerden kullanılıyor: DEVAM
+   ET'ten sonra koşuya dönerken ve oyun ilk başlarken. */
+function geriSayimBaslat(bitince){
   const no = ++sayimNo;
   sayiliyor = true;
   const katman = $('#countScreen'), kutu = $('#countVal');
@@ -1959,11 +2002,12 @@ function geriSayimBaslat(){
     if(n === 0){
       katman.classList.add('hidden');
       sayiliyor = false;
-      /* Duraklamada geçen süre oyuna eklenmesin. Döngü duraklamada da dönüp
+      /* Sayımda geçen süre oyuna eklenmesin. Döngü sayım boyunca da dönüp
          lastTime'ı tazelediği için normalde sıçrama olmaz; sekme arkaya
          atılıp rAF durursa diye yine de sıfırlıyoruz. */
       lastTime = performance.now();
       state = 'flying';
+      if(bitince) bitince();
       return;
     }
     // Rakam boyu sahne yüksekliğine oranlı: kioskta da telefonda da aynı görünür
@@ -1977,7 +2021,7 @@ function geriSayimBaslat(){
 function devamEt(){
   if(state !== 'paused' || sayiliyor) return;   // sayım sürerken tekrar tetiklenmesin
   molaKapat();
-  geriSayimBaslat();
+  geriSayimBaslat();          // sıfıra inince state='flying' — ek iş yok
 }
 /* Yarıda bırakılan oyun skor tablosuna YAZILMAZ: çocuk oyunu bitirmedi,
    yarım skorla listeye girmesi diğer oyuncuları haksız duruma düşürürdü. */

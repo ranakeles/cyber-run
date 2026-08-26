@@ -1502,19 +1502,20 @@ function nextFlight(){
   $('#questionScreen').classList.add('hidden');
 }
 
-/* Kaçırılan soru bir can götürür. Bu bir ara kaldırılmıştı çünkü soru ile
-   engel üst üste doğabiliyor ve oyuncu kendi hatası olmadan can
-   kaybedebiliyordu; `zarfaUygun` o durumu imkânsız hale getirdiği için
-   ceza geri kondu — artık kaçırmak gerçekten oyuncunun tercihi.
-   Puan cezası yine de yanlış cevaptan hafif: kaçırmak refleks hatası,
-   kanmak bilgi hatası.                                                  */
+/* Kaçırılan soru SADECE puan götürür, can götürmez.
+   Bir ara can da götürüyordu; kaldırıldı çünkü koşu becerisi yüzünden
+   ölmek oyunun asıl mesajını (e-postayı doğru okumak) gölgeliyordu —
+   engel çarpmasında da aynı gerekçeyle can gitmiyor.
+   DİKKAT: bu değişiklikten sonra can YALNIZCA yanlış cevapta gidiyor.   */
 function missQuestion(){
   const m = aktifSoru;
   total++;                       // doğruluk oranına yansısın
   streak = 0;
-  lives--;
+  /* Kaçırmak CAN GÖTÜRMÜYOR, sadece puan. Kaçırmak bir refleks hatası;
+     oyunun öğretmek istediği şey e-postayı doğru okumak, zarfı yakalamak
+     değil. Can yalnızca YANLIŞ CEVAPTA gidiyor.                          */
   score = Math.max(0, score + PTS_MISS);
-  updateHud(-1);
+  updateHud();
   state = 'feedback';
   const f = $('#flash');
   /* Kaçırmanın kendi kartı var ("SORU KAÇIRILDI!"), o yüzden metne ayrıca
@@ -1522,7 +1523,7 @@ function missQuestion(){
   cevapKartiKur('kacti');
   $('#fWhy').textContent =
     (m.safe ? 'Bu e-posta güvenliydi. ' : 'Bu e-posta şüpheliydi. ') + m.why;
-  $('#fPts').textContent = PTS_MISS + ' puan  •  −1 can';
+  $('#fPts').textContent = PTS_MISS + ' puan';
   $('#fPts').style.color = '#b45309';   // kaçırma kartı turuncu tonlarda
   aciklamaSigdir();
   f.classList.add('show');

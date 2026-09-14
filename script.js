@@ -415,6 +415,20 @@ function drawCover(img){
 }
 
 const STAGE_AR = 941/1672;   // sokak görselinin oranı (~9:16). Sahne bu orana kilitli.
+/* ================= EKRAN ÖLÇEĞİ =================
+   Dünyadaki her boyut (karakter, engeller, soru simgesi, ağaç/lamba/duba,
+   zıplama yüksekliği, HUD) TASARIM PİKSELİ olarak yazılmış ve sahne
+   yüksekliği 900 px iken ayarlanmıştı. Yol ve gökyüzü ise ekranla birlikte
+   büyüyor. Sonuç: 1080x1920 kioskta yol iki kat büyüyor ama üstündeki her
+   şey aynı pikselde kalıyordu — karakter ekranın %23'ü yerine %11'i,
+   bariyer %18 yerine %8. Hepsi yarı boya düşüp minicik görünüyordu.
+   Çözüm: çizim anında hepsi aynı çarpanla büyür. OYUN MANTIĞI DEĞİŞMEZ —
+   zıplama, yakalama ve çarpışma hâlâ tasarım pikseli / derinlik üzerinden
+   hesaplanıyor, yalnızca ekrana çizilen boy çarpılıyor. Böylece 900 px'te
+   ayarlanan her oran (bariyer zıplama tepesinden yüksek vb.) her ekranda
+   aynen korunuyor.                                                        */
+const TASARIM_H = 900;       // mevcut boyların ayarlandığı sahne yüksekliği
+let OLCEK = 1;               // H / TASARIM_H — resize() günceller
 const END_AR = 853/1844;     // bitiş ekranı tasarımının oranı (daha dar)
 const AD_AR  = 1024/1536;    // isim ekranı tasarımının oranı (daha geniş)
 const SECIM_AR = 1023/1537;  // karakter seçim ekranı tasarımının oranı
@@ -428,6 +442,12 @@ function resize(){
   let cw = window.innerWidth, ch = window.innerHeight;
   if(cw/ch > STAGE_AR) cw = ch*STAGE_AR; else ch = cw/STAGE_AR;
   W = Math.round(cw); H = Math.round(ch);
+  OLCEK = H / TASARIM_H;
+  // HUD DOM'da; aynı çarpanı CSS'e de ver (bkz. style.css --olcek)
+  document.documentElement.style.setProperty('--olcek', OLCEK);
+  const skorKutusu = document.getElementById('scoreVal');
+  if(skorKutusu){ skorKutusu.dataset.puan = ''; }   // rakamlar yeni boyla dizilsin
+  if(!document.getElementById('hud').classList.contains('hidden')) renderScore();
   canvas.width = W*DPR; canvas.height = H*DPR;
   canvas.style.width = W+'px'; canvas.style.height = H+'px';
   // Sahneyi ekranda ortala (yatay/geniş pencerelerde yanlarda koyu boşluk kalır)
@@ -919,12 +939,12 @@ function drawFlowingScenery(){
       // İçerik kutusunu ölç: görselin boş kenar payı boyutu küçültmesin
       const f = spriteFit(it.img);
       const sw = f.wRatio*it.img.width, sh = f.hRatio*it.img.height;
-      const h = it.h*pos.e, w = h*sw/sh;
+      const h = it.h*pos.e*OLCEK, w = h*sw/sh;
       if(pos.x + w/2 < 0 || pos.x - w/2 > W) continue;
       ctx.drawImage(it.img, f.left*it.img.width, f.top*it.img.height, sw, sh,
                     pos.x - w/2, pos.y - h, w, h);
     } else {
-      const h = it.h*pos.e, w = h*it.img.width/it.img.height;
+      const h = it.h*pos.e*OLCEK, w = h*it.img.width/it.img.height;
       if(pos.x + w/2 < 0 || pos.x - w/2 > W) continue;
       ctx.drawImage(it.img, pos.x - w/2, pos.y - h, w, h);
     }
@@ -1068,15 +1088,15 @@ function drawToken(){
   const tt = 1/Math.sqrt(Math.max(0.4, token.u));
   const p = project(token.lane, tt);
   const t = sahneSaati;                             // duraklatınca durur
-  const bobY  = Math.sin(t*2.6)*7*p.e;              // havada süzülme
+  const bobY  = Math.sin(t*2.6)*7*p.e*OLCEK;        // havada süzülme
   const pulse = 1 + Math.sin(t*4.2)*0.05;           // hafif nabız
-  const liftY = (token.high ? TOKEN_HIGH_Y : TOKEN_LOW_Y) * p.e;
+  const liftY = (token.high ? TOKEN_HIGH_Y : TOKEN_LOW_Y) * p.e * OLCEK;
   const cx = p.x, cy = p.y - liftY + bobY;
 
   /* Çizim ölçüsünü ÖNCE hesaplıyoruz: hâle simgenin gerçek genişliğine
      göre büyümezse (simge enine olduğu için) tamamen arkasında kalıyor. */
   const img = IMAGES.token, f = img ? spriteFit(img) : null;
-  const th = TOKEN_H*p.e*pulse;
+  const th = TOKEN_H*p.e*pulse*OLCEK;
   const tw = img ? th*(f.wRatio*img.width)/(f.hRatio*img.height) : th;
 
   ctx.save();
@@ -1094,7 +1114,7 @@ function drawToken(){
                   f.wRatio*img.width, f.hRatio*img.height, cx-tw/2, cy-th/2, tw, th);
   } else {
     // Yer tutucu: sıcak renkli basit zarf (asset gelince silinecek)
-    const w = 74*p.e*pulse, h = w*0.66;
+    const w = 74*p.e*pulse*OLCEK, h = w*0.66;
     ctx.translate(cx, cy);
     ctx.fillStyle='#fffdf6'; ctx.strokeStyle='#c9a86a'; ctx.lineWidth=Math.max(1,2*p.e);
     ctx.beginPath(); ctx.roundRect(-w/2,-h/2,w,h, 6*p.e); ctx.fill(); ctx.stroke();
@@ -1104,9 +1124,12 @@ function drawToken(){
 }
 
 function drawRunner(){
-  const S = clamp(H/620, 0.85, 1.5);
+  /* Eskiden clamp(H/620, 0.85, 1.5) idi: 1.5'te tavan yaptığı için kioskta
+     karakter büyümüyordu. Artık tavan yok; 900 px'te değeri eskisiyle aynı. */
+  const S = (TASARIM_H/620) * OLCEK;
   const x = project(plane.laneVis, 1).x;
-  const footY = planeBaseY - plane.jumpY;                  // zıplayınca yukarı kalkar
+  // jumpY tasarım pikseli (oyun mantığı); ekranda ölçekli çizilir
+  const footY = planeBaseY - plane.jumpY*OLCEK;            // zıplayınca yukarı kalkar
 
   /* --- Koşu döngüsü ---
      plane.bob sürekli artıyor; her π'lik dilim bir adım (ayak vuruşu).
@@ -1244,8 +1267,9 @@ function drawOneObstacle(o){
   const f = spriteFit(img);
   const sw = f.wRatio*img.width, sh = f.hRatio*img.height;
   // Saf perspektif (p.e): şerit genişliğiyle orantılı büyür/küçülür
-  const h = o.w ? (o.w*p.e)*sh/sw : o.h*p.e;
-  const w = o.w ?  o.w*p.e        : h*sw/sh;
+  const e = p.e * OLCEK;                          // derinlik × ekran ölçeği
+  const h = o.w ? (o.w*e)*sh/sw : o.h*e;
+  const w = o.w ?  o.w*e        : h*sw/sh;
   if(p.x + w/2 < 0 || p.x - w/2 > W) return;
   ctx.globalAlpha = clamp((t - 0.22)/0.10, 0, 1);
   ctx.drawImage(img, f.left*img.width, f.top*img.height, sw, sh, p.x - w/2, p.y - h, w, h);
@@ -1373,7 +1397,7 @@ function renderScore(){
   const yazi = String(score);
   if(kutu.dataset.puan === yazi) return;   // aynı sayı → yeniden dizme
   kutu.dataset.puan = yazi;
-  rakamlariDiz(kutu, score, RAKAM_Y);
+  rakamlariDiz(kutu, score, RAKAM_Y * OLCEK);
 }
 
 function updateHud(degisim){

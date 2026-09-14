@@ -72,16 +72,20 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 /* Üst bar SAHNEYE oturur (pencereye değil): genişliği script'te sahne
    genişliğine eşitlenir. Yoksa geniş ekranda skor, oyunun değil pencerenin
    sağına giderdi. Solda alt alta puan ve canlar, sağda duraklatma. */
+/* HUD'daki tüm boylar tasarım pikseli × --olcek (script'te sahne yüksekliği
+   / 900). Sabit piksel kalınca 1080x1920 kioskta skor sayacı sahne
+   genişliğinin %42'si yerine %20'si kadar kalıyordu.                      */
 #hud{ position:fixed; top:0; left:50%; transform:translateX(-50%); z-index:5;
   display:flex; justify-content:space-between; align-items:flex-start;
-  gap:26px; padding:16px 22px; pointer-events:none; }
+  gap:calc(26px*var(--olcek,1)); padding:calc(16px*var(--olcek,1)) calc(22px*var(--olcek,1));
+  pointer-events:none; }
 /* Puan üstte, canlar altında — ikisi de sol kenardan hizalı */
-.hud-sol{ display:flex; flex-direction:column; align-items:flex-start; gap:10px; }
+.hud-sol{ display:flex; flex-direction:column; align-items:flex-start; gap:calc(10px*var(--olcek,1)); }
 /* Puan sayacı: kullanıcının çerçeve görseli (kupa + bilet + uçak). Rakamlar
    krem biletin içine, uçağın soluna oturur — oranlar görselden ÖLÇÜLDÜ
    (krem panel %29.6–%90.5 yatay, uçak %81.4'te başlıyor). Görsel
    değişirse bu oranlar da yeniden ölçülmeli. */
-.hud-score{ position:relative; width:214px; height:78.6px; background-size:100% 100%; background-repeat:no-repeat;
+.hud-score{ position:relative; width:calc(214px*var(--olcek,1)); height:calc(78.6px*var(--olcek,1)); background-size:100% 100%; background-repeat:no-repeat;
   filter:drop-shadow(0 3px 7px rgba(0,0,0,.4)); }
 .score-digits{ position:absolute; left:31%; right:20%; top:31.8%; bottom:28.2%; }
 /* Rakam görselinden dizilen sayı (hem HUD'da hem bitiş kurdelesinde) */
@@ -93,8 +97,8 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
    life2.png = boş şerit). Her görselde 3 kalp yan yana duruyor ve her kalp
    tam kare; bu yüzden kutuya görselin ÜÇTE BİRİ gösterilir:
    background-size:300% → 0% sol kalp, 50% orta, 100% sağ.               */
-.hud-can{ display:flex; gap:4px; align-items:center; }
-.hud-can .can{ width:46px; height:46px; background-size:300% 100%; background-repeat:no-repeat;
+.hud-can{ display:flex; gap:calc(4px*var(--olcek,1)); align-items:center; }
+.hud-can .can{ width:calc(46px*var(--olcek,1)); height:calc(46px*var(--olcek,1)); background-size:300% 100%; background-repeat:no-repeat;
   filter:drop-shadow(0 2px 5px rgba(0,0,0,.45)); transition:opacity .2s ease; }
 /* Can kazanınca/kaybedince gösterge kısa bir darbe yapar: değişimin
    fark edilmemesi en sık şikâyet edilen şey. */
@@ -104,7 +108,7 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 /* Duraklatma butonu: sağ üst köşe, puan sayacıyla aynı hizada başlar.
    #hud pointer-events:none olduğu için burada tekrar açılıyor. */
 /* Puan sayacının üst hizasından birazcık aşağıda dursun */
-.hud-pause{ flex:none; width:78px; height:78px; margin-top:8px; background:none; border:none; padding:0;
+.hud-pause{ flex:none; width:calc(78px*var(--olcek,1)); height:calc(78px*var(--olcek,1)); margin-top:calc(8px*var(--olcek,1)); background:none; border:none; padding:0;
   background-size:100% 100%; background-repeat:no-repeat;   /* görsel script'te veriliyor */
   pointer-events:auto; cursor:pointer; -webkit-tap-highlight-color:transparent;
   filter:drop-shadow(0 3px 7px rgba(0,0,0,.4)); transition:transform .08s ease; }

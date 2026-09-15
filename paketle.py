@@ -38,7 +38,7 @@ MAP = {
     "assets/pause_card_girl.png":("pause_card_girl.png","image/png"), # duraklama kartı (kız)
     "assets/end_page7.png":     ("end_page7.jpg",     "image/jpeg"),   # bitiş ekranı (oğlan)
     "assets/end_page_girl.png": ("end_page_girl.jpg", "image/jpeg"),   # bitiş ekranı (kız)
-    "assets/character_page.png":("character_page.jpg","image/jpeg"),   # karakter seçim ekranı
+    "assets/character_page2.png":("character_page2.jpg","image/jpeg"), # karakter seçim ekranı (9:16)
     "assets/how_to_play2.png": ("how_to_play2.png",  "image/png"),   # nasıl oynanır (2 kart)
     "assets/wall_strip.png":    ("wall_strip.png",    "image/png"),
     "assets/wall_strip2.png":   ("wall_strip2.png",   "image/png"),

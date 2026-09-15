@@ -431,7 +431,7 @@ const TASARIM_H = 900;       // mevcut boyların ayarlandığı sahne yüksekli�
 let OLCEK = 1;               // H / TASARIM_H — resize() günceller
 const END_AR = 853/1844;     // bitiş ekranı tasarımının oranı (daha dar)
 const AD_AR  = 1024/1536;    // isim ekranı tasarımının oranı (daha geniş)
-const SECIM_AR = 1023/1537;  // karakter seçim ekranı tasarımının oranı
+const SECIM_AR = 941/1672;   // karakter seçim ekranı tasarımının oranı (9:16, kioskla aynı)
 /* Kart tam ekranı kaplamaz: oyun sahnesinin genişliğinin bu kadarını kaplar.
    Sabit piksel verilseydi küçük ekranda taşar, kioskta minicik kalırdı. */
 const MOLA_GENISLIK = 0.80;  // sahne genişliğinin oranı
@@ -2082,7 +2082,7 @@ resize();
   if(ns) ns.style.backgroundImage = 'url(' + isim + ')';
   if(nb) nb.src = isim;
   // Karakter seçim ekranı tasarımı
-  const sec = assetURL('assets/character_page.png');
+  const sec = assetURL('assets/character_page2.png');
   const cs = $('#charStage'), cb = $('#charBg');
   if(cs) cs.style.backgroundImage = 'url(' + sec + ')';
   if(cb) cb.src = sec;

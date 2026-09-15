@@ -234,11 +234,14 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 .how-start{ left:12.66%; width:74.38%; top:83.10%; height:10.50%; }
 
 /* ================= KARAKTER SEÇİMİ =================
-   Tasarımın tamamı character_page.png (1023x1537). Kod yalnızca iki
-   madalyonun üstüne görünmez dokunma alanı koyuyor; madalyonlar görselin
-   pikselleri taranarak ÖLÇÜLDÜ (altın halka rengine göre):
-     OĞLAN  x  34-504  y 638-1125
-     KIZ    x 521-988  y 639-1118
+   Tasarımın tamamı character_page2.png (941x1672, 9:16 — kiosk ekranıyla
+   aynı oran; eski 1023x1537 kioskta üstte ve altta 149 px boş bırakıyordu).
+   Kod yalnızca iki madalyonun üstüne görünmez dokunma alanı koyuyor;
+   madalyonlar görselin pikselleri taranarak ÖLÇÜLDÜ (parlak/sarı halka
+   rengine göre — halkanın tepesi beyaza yakın, yalnız altın rengiyle
+   ölçünce üst kenar kaçıyordu):
+     OĞLAN  x  46-463  y 689-1138
+     KIZ    x 478-894  y 690-1138
    Görsel değişirse yeniden ölçülmeli.                                    */
 .char-stage{ position:relative; z-index:1; background-size:100% 100%; background-repeat:no-repeat;
   filter:drop-shadow(0 10px 40px rgba(0,0,0,.5)); }
@@ -247,8 +250,8 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
   transition:transform .1s ease; }
 /* Dokununca madalyon hafifçe büyür: çocuk seçtiğini hissetsin */
 .char-hit:active{ transform:scale(1.06); }
-.char-boy { left:3.32%;  width:46.04%; top:41.51%; height:31.75%; }
-.char-girl{ left:50.93%; width:45.75%; top:41.57%; height:31.23%; }
+.char-boy { left:4.89%;  width:44.42%; top:41.21%; height:26.91%; }
+.char-girl{ left:50.80%; width:44.31%; top:41.27%; height:26.85%; }
 
 /* ---------- KIZ KARAKTER SEÇİLİYKEN ----------
    Kızın duraklama kartı ve bitiş ekranı AYRI görseller; ikisinin de kutuları

@@ -1823,14 +1823,18 @@ function adYaz(harf){
 function adSil(){ yazilanAd = yazilanAd.slice(0, -1); adGuncelle(); }
 
 /* ---------- NASIL OYNANIR ----------
-   İki kart TEK görselde (how_to_play2.png): solda oğlan, sağda kız.
-   Cevap kartlarındaki yöntemle arka plan ölçeklenip kaydırılıyor, böylece
-   yalnızca seçili karakterin kartı görünüyor. Kutular görselden ÖLÇÜLDÜ. */
-const NASIL_SRC = 'assets/how_to_play2.png';
+   Her karakterin kartı AYRI görsel (1024x1536, kart tuvali dolduruyor).
+   Eskiden iki kart tek görseldeydi (how_to_play2.png); o hâlde kart başına
+   yalnızca 642 px düşüyordu ve kioskta 864 px'e büyütülünce yazılar bulanık
+   çıkıyordu. Artık kart ~950 px, ekranda hafifçe KÜÇÜLTÜLEREK çiziliyor.
+   `kart` görseldeki kartın dış sınırı (alfa>200 gövde + 1 px pay), `buton`
+   HADİ BAŞLA'nın yeşil yüzü — ikisi de kaynak pikseli, görselden ÖLÇÜLDÜ.
+   İki karakterin butonu %0.5'e kadar farklı yerde, o yüzden ayrı ayrı.     */
 const NASIL_YERI = {
-  W:1536, H:1024,
-  oglan: { x:74,  y:1, w:642, h:1002 },
-  kiz:   { x:785, y:0, w:640, h:1005 }
+  oglan: { src:'assets/how_to_play_boy.png',  kart:{ x:37, y:8, w:951, h:1509 },
+           buton:{ x:145, y:1271, w:731, h:159 } },
+  kiz:   { src:'assets/how_to_play_girl.png', kart:{ x:39, y:6, w:946, h:1508 },
+           buton:{ x:145, y:1271, w:732, h:159 } }
 };
 function nasilOynanirAc(){
   const y = NASIL_YERI[karakter] || NASIL_YERI.oglan;
@@ -1838,13 +1842,19 @@ function nasilOynanirAc(){
   /* Duraklama kartıyla aynı ölçülendirme: sahne genişliğine oranlı, gerekirse
      yükseklikten kısılır. Sabit piksel küçük ekranda taşıyor. */
   const taban = (W > 0 ? W : window.innerWidth);
-  let kw = taban * MOLA_GENISLIK, kh = kw * y.h / y.w;
-  if(kh > H * MOLA_YUKSEKLIK){ kh = H * MOLA_YUKSEKLIK; kw = kh * y.w / y.h; }
+  let kw = taban * MOLA_GENISLIK, kh = kw * y.kart.h / y.kart.w;
+  if(kh > H * MOLA_YUKSEKLIK){ kh = H * MOLA_YUKSEKLIK; kw = kh * y.kart.w / y.kart.h; }
   kart.style.width = kw+'px'; kart.style.height = kh+'px';
-  const s = kw / y.w;                       // görselden ekrana ölçek
-  kart.style.backgroundImage    = 'url(' + assetURL(NASIL_SRC) + ')';
-  kart.style.backgroundSize     = (NASIL_YERI.W*s)+'px '+(NASIL_YERI.H*s)+'px';
-  kart.style.backgroundPosition = (-y.x*s)+'px '+(-y.y*s)+'px';
+  const k = y.kart, s = kw / k.w;           // görselden ekrana ölçek
+  kart.style.backgroundImage    = 'url(' + assetURL(y.src) + ')';
+  kart.style.backgroundSize     = (1024*s)+'px '+(1536*s)+'px';
+  kart.style.backgroundPosition = (-k.x*s)+'px '+(-k.y*s)+'px';
+  // HADİ BAŞLA dokunma alanı: kartın yüzdesi olarak (cevap kartlarındaki gibi)
+  const b = y.buton, btn = $('#howStartBtn');
+  btn.style.left   = (100*(b.x-k.x)/k.w) + '%';
+  btn.style.top    = (100*(b.y-k.y)/k.h) + '%';
+  btn.style.width  = (100*b.w/k.w) + '%';
+  btn.style.height = (100*b.h/k.h) + '%';
   $('#howScreen').classList.remove('hidden');
 }
 function nasilOynanirKapat(){ $('#howScreen').classList.add('hidden'); }

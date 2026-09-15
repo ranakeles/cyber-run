@@ -20,68 +20,91 @@ if len(sys.argv) > 1:
 else:
     SRC = next((p for p in OLASI if os.path.isfile(os.path.join(p, "script.js"))), OLASI[-1])
 OPT = "/tmp/sk_opt"
-OUT = "/Users/ranakeles/Desktop/SIBER KOSU (tek dosya).html"
+OUT = sys.argv[2] if len(sys.argv) > 2 else "/Users/ranakeles/Desktop/SIBER KOSU (tek dosya).html"
 print("Kaynak klasör:", SRC)
 
-# Kodda geçen asset yolu -> optimize edilmiş dosya
+# ---- Çözünürlük ----
+# Eskiden HER görsel 900 px genişliğe indiriliyordu. 1080x1920 kioskta bu
+# bazı görselleri okunmaz hâle getirdi: nasıl oynanır görselinde iki kart
+# yan yana olduğu için her kart 376 px kalıyor, ekranda ise 864 px'e (2.3
+# kat) büyütülüyordu. Kural artık görselin EKRANDA ne kadar büyük
+# çizildiğine göre:
+#   TAM  = kaynağın kendi çözünürlüğü, hiç küçültme. Kioskta ekran
+#          genişliğine yakın çizilenler: kartlar, tam ekran sayfalar,
+#          arka plan ve duvar dokuları.
+#   900  = kioskta en fazla birkaç yüz piksel çizilenler: karakter kareleri,
+#          engeller, ağaç/lamba, HUD parçaları. Bunlarda 900 bol bol yeter,
+#          tam çözünürlük sadece paketi şişirir.
+TAM = None
+# Kodda geçen asset yolu -> (paketteki ad, tür, azami genişlik)
 MAP = {
-    "assets/bg_far.png":        ("bg_far.jpg",        "image/jpeg"),
-    "assets/ground_tile.png":   ("ground_tile.jpg",   "image/jpeg"),
-    "assets/home_page3.png":    ("home_page3.jpg",    "image/jpeg"),   # iki karakter birlikte
-    "assets/missed_question.png":("missed_question.png","image/png"),  # kaçırılan soru kartı
-    "assets/answers.png":      ("answers.png",      "image/png"),   # doğru/yanlış kartları
-    "assets/mail_body.png":    ("mail_body.png",    "image/png"),   # e-posta kartı (eksiz)
-    "assets/mail_file.png":    ("mail_file.png",    "image/png"),   # e-posta kartı (dosya ekli)
-    "assets/enter_name.png":   ("enter_name.png",    "image/png"),   # isim ekranı (klavye dahil)
-    "assets/pause_card.png":   ("pause_card.png",    "image/png"),   # duraklama kartı (şeffaf)
-    "assets/pause_button.png": ("pause_button.png",  "image/png"),   # HUD duraklatma butonu
-    "assets/pause_card_girl.png":("pause_card_girl.png","image/png"), # duraklama kartı (kız)
-    "assets/end_page7.png":     ("end_page7.jpg",     "image/jpeg"),   # bitiş ekranı (oğlan)
-    "assets/end_page_girl.png": ("end_page_girl.jpg", "image/jpeg"),   # bitiş ekranı (kız)
-    "assets/character_page2.png":("character_page2.jpg","image/jpeg"), # karakter seçim ekranı (9:16)
-    "assets/how_to_play2.png": ("how_to_play2.png",  "image/png"),   # nasıl oynanır (2 kart)
-    "assets/wall_strip.png":    ("wall_strip.png",    "image/png"),
-    "assets/wall_strip2.png":   ("wall_strip2.png",   "image/png"),
-    "assets/wall_front.png":    ("wall_front.png",    "image/png"),
-    "assets/child.png":         ("child.png",         "image/png"),
-    "assets/child2.png":        ("child2.png",        "image/png"),
-    "assets/child3.png":        ("child3.png",        "image/png"),
-    "assets/child4.png":        ("child4.png",        "image/png"),
-    "assets/girl.png":          ("girl.png",          "image/png"),   # kız koşu kareleri
-    "assets/girl2.png":         ("girl2.png",         "image/png"),
-    "assets/girl3.png":         ("girl3.png",         "image/png"),
-    "assets/girl4.png":         ("girl4.png",         "image/png"),
-    "assets/prop_tree.png":     ("prop_tree.png",     "image/png"),
-    "assets/prop_lamp.png":     ("prop_lamp.png",     "image/png"),
-    "assets/prop_bollard.png":  ("prop_bollard.png",  "image/png"),
-    "assets/token_question.png":("token_question.png","image/png"),
-    "assets/life.png":          ("life.png",          "image/png"),   # dolu kalp şeridi
-    "assets/life2.png":         ("life2.png",         "image/png"),   # boş kalp şeridi
-    "assets/skor_tablosu.png":  ("skor_tablosu.png",  "image/png"),   # puan sayacı çerçevesi
-    "assets/score_numbers.png": ("score_numbers.png", "image/png"),   # 0-9 rakam şeridi
-    "assets/ucak_thy.png":      ("ucak_thy.png",      "image/png"),
-    "assets/ucak_ajet.png":     ("ucak_ajet.png",     "image/png"),
-    "assets/ucak_sunexpress.png":("ucak_sunexpress.png","image/png"),
-    "assets/ucak_turkishcargo.png":("ucak_turkishcargo.png","image/png"),
-    "assets/barrier.png":       ("barrier.png",       "image/png"),
-    "assets/su_birikintisi.png":("su_birikintisi.png","image/png"),
-    "assets/simit_arabasi.png": ("simit_arabasi.png", "image/png"),
+    "assets/bg_far.png": ("bg_far.jpg", "image/jpeg", TAM),
+    "assets/ground_tile.png": ("ground_tile.jpg", "image/jpeg", TAM),
+    "assets/home_page3.png": ("home_page3.jpg", "image/jpeg", TAM),   # iki karakter birlikte
+    "assets/missed_question.png": ("missed_question.png", "image/png", TAM),   # kaçırılan soru kartı
+    "assets/answers.png": ("answers.png", "image/png", TAM),   # doğru/yanlış kartları
+    "assets/mail_body.png": ("mail_body.png", "image/png", TAM),   # e-posta kartı (eksiz)
+    "assets/mail_file.png": ("mail_file.png", "image/png", TAM),   # e-posta kartı (dosya ekli)
+    "assets/enter_name.png": ("enter_name.png", "image/png", TAM),   # isim ekranı (klavye dahil)
+    "assets/pause_card.png": ("pause_card.png", "image/png", TAM),   # duraklama kartı (şeffaf)
+    "assets/pause_button.png": ("pause_button.png", "image/png", 900),   # HUD duraklatma butonu
+    "assets/pause_card_girl.png": ("pause_card_girl.png", "image/png", TAM),   # duraklama kartı (kız)
+    "assets/end_page7.png": ("end_page7.jpg", "image/jpeg", TAM),   # bitiş ekranı (oğlan)
+    "assets/end_page_girl.png": ("end_page_girl.jpg", "image/jpeg", TAM),   # bitiş ekranı (kız)
+    "assets/character_page2.png": ("character_page2.jpg", "image/jpeg", TAM),   # karakter seçim ekranı (9:16)
+    "assets/how_to_play2.png": ("how_to_play2.png", "image/png", TAM),   # nasıl oynanır (2 kart)
+    "assets/wall_strip.png": ("wall_strip.png", "image/png", TAM),
+    "assets/wall_strip2.png": ("wall_strip2.png", "image/png", TAM),
+    "assets/wall_front.png": ("wall_front.png", "image/png", TAM),
+    "assets/child.png": ("child.png", "image/png", 900),
+    "assets/child2.png": ("child2.png", "image/png", 900),
+    "assets/child3.png": ("child3.png", "image/png", 900),
+    "assets/child4.png": ("child4.png", "image/png", 900),
+    "assets/girl.png": ("girl.png", "image/png", 900),   # kız koşu kareleri
+    "assets/girl2.png": ("girl2.png", "image/png", 900),
+    "assets/girl3.png": ("girl3.png", "image/png", 900),
+    "assets/girl4.png": ("girl4.png", "image/png", 900),
+    "assets/prop_tree.png": ("prop_tree.png", "image/png", 900),
+    "assets/prop_lamp.png": ("prop_lamp.png", "image/png", 900),
+    "assets/prop_bollard.png": ("prop_bollard.png", "image/png", 900),
+    "assets/token_question.png": ("token_question.png", "image/png", 900),
+    "assets/life.png": ("life.png", "image/png", 900),   # dolu kalp şeridi
+    "assets/life2.png": ("life2.png", "image/png", 900),   # boş kalp şeridi
+    "assets/skor_tablosu.png": ("skor_tablosu.png", "image/png", 900),   # puan sayacı çerçevesi
+    "assets/score_numbers.png": ("score_numbers.png", "image/png", TAM),   # 0-9 rakam şeridi (3-2-1 sayımında ekran boyunun %20si)
+    "assets/ucak_thy.png": ("ucak_thy.png", "image/png", 900),
+    "assets/ucak_ajet.png": ("ucak_ajet.png", "image/png", 900),
+    "assets/ucak_sunexpress.png": ("ucak_sunexpress.png", "image/png", 900),
+    "assets/ucak_turkishcargo.png": ("ucak_turkishcargo.png", "image/png", 900),
+    "assets/barrier.png": ("barrier.png", "image/png", 900),
+    "assets/su_birikintisi.png": ("su_birikintisi.png", "image/png", 900),
+    "assets/simit_arabasi.png": ("simit_arabasi.png", "image/png", 900),
 }
 
-def data_uri(yol, fname, mime):
-    """Küçültülmüş kopyayı okur; yoksa kaynaktan üretir.
+def data_uri(yol, fname, mime, azami):
+    """Pakete girecek kopyayı okur; yoksa kaynaktan üretir.
 
-    Böylece assets/ içine yeni bir görsel eklenince (örn. yeni havayolu
-    uçağı) MAP'e bir satır yazmak yeterli olur — elle küçültme derdi yok.
-    Ham görseller 1.5-2.5 MB; hepsini gömersek paket 60 MB'ı geçer."""
-    hedef = os.path.join(OPT, fname)
+    Böylece assets/ içine yeni bir görsel eklenince MAP'e bir satır yazmak
+    yeterli olur. Önbellekteki dosyanın adında genişlik de var (ör.
+    child@900.png, answers@tam.png): kural değişince eski çözünürlükteki
+    kopya yanlışlıkla yeniden kullanılmasın."""
+    kok, uzanti = os.path.splitext(fname)
+    hedef = os.path.join(OPT, "%s@%s%s" % (kok, "tam" if azami is None else azami, uzanti))
     if not os.path.isfile(hedef):
         os.makedirs(OPT, exist_ok=True)
         kaynak = os.path.join(SRC, yol)
         fmt = "jpeg" if mime == "image/jpeg" else "png"
-        print("  küçültülüyor:", yol)
-        subprocess.run(["sips", "-s", "format", fmt, "--resampleWidth", "900",
-                        kaynak, "--out", hedef], check=True, capture_output=True)
+        komut = ["sips", "-s", "format", fmt]
+        if fmt == "jpeg":
+            komut += ["-s", "formatOptions", "92"]      # yazılı ekranlarda JPEG bozulması olmasın
+        gen = int(subprocess.run(["sips", "-g", "pixelWidth", kaynak], capture_output=True,
+                                 text=True).stdout.split()[-1])
+        if azami is not None and gen > azami:
+            komut += ["--resampleWidth", str(azami)]
+            print("  küçültülüyor: %s (%d -> %d px)" % (yol, gen, azami))
+        else:
+            print("  tam çözünürlük: %s (%d px)" % (yol, gen))
+        subprocess.run(komut + [kaynak, "--out", hedef], check=True, capture_output=True)
     with open(hedef, "rb") as f:
         return "data:%s;base64,%s" % (mime, base64.b64encode(f.read()).decode())
 
@@ -132,10 +155,10 @@ js = re.sub(r"// Stil dosyası da önbellekte.*?\n\}\)\(\);\n", "", js, flags=re
 js = re.sub(r"if\(location\.protocol === 'file:'\)\{.*?\n\}\n", "", js, flags=re.S)
 # 4) Asset yollarını gömülü verilerle değiştir
 eksik = []
-for yol, (fname, mime) in MAP.items():
+for yol, (fname, mime, azami) in MAP.items():
     if yol not in js:
         eksik.append(yol); continue
-    js = js.replace("'%s'" % yol, "'%s'" % data_uri(yol, fname, mime))
+    js = js.replace("'%s'" % yol, "'%s'" % data_uri(yol, fname, mime, azami))
 if eksik:
     print("UYARI: kodda bulunamayan yollar:", eksik)
 

@@ -215,15 +215,14 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 .end-again{ left:51.82%; width:43.14%; top:88.29%; height:5.91%; }
 /* ================= NASIL OYNANIR =================
    Duraklama kartıyla aynı kabuğu kullanıyor (.pause-overlay/.pause-stage),
-   yalnızca arka plan konumu ve buton kutusu farklı. İki kart TEK görselde
-   olduğu için arka plan ölçeklenip kaydırılarak yarısı gösteriliyor;
-   ölçüleri script'teki NASIL_YERI veriyor (inline stil).
+   yalnızca arka plan ve buton kutusu farklı. Her karakterin kartı ayrı
+   görsel (how_to_play_boy.png / how_to_play_girl.png, 1024x1536); kart
+   ölçüleri ve HADİ BAŞLA'nın yeri script'teki NASIL_YERI'den inline gelir.
 
-   how_to_play2.png (1536x1024) içinde ölçülen ham piksel kutuları:
-     oğlan kartı  x  75- 714  y    2-1001   butonu x 156- 631 y 833-937
-     kız kartı    x 786-1423  y    1-1003   butonu x 867-1341 y 833-937
-   İki kartın buton yüzdesi %0.2'den az farklı (≈1 piksel), o yüzden tek
-   kural ikisine de yetiyor. Görsel değişirse yeniden ölçülmeli.          */
+   Ölçülen ham piksel kutuları (1024x1536 içinde):
+     oğlan  kart x 38-986 y 9-1515   butonu x 145-875 y 1271-1429
+     kız    kart x 40-983 y 7-1512   butonu x 145-876 y 1271-1429
+   Görsel değişirse yeniden ölçülmeli.                                    */
 /* Kartın arkası OYUN DEĞİL, düz renk. Oyun henüz başlamadı; arkada donmuş
    sokağı göstermek "başladı ama duruyor" gibi okunuyordu. Renk karakter
    seçim ekranının zemininden ölçüldü (#002292), böylece iki ekran aynı
@@ -231,7 +230,7 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
    oyunun görünmesi bilinçli.                                             */
 .how-overlay{ background:#002292; backdrop-filter:none; }
 .how-stage{ background-size:auto; }        /* konum/ölçek script'ten gelir */
-.how-start{ left:12.66%; width:74.38%; top:83.10%; height:10.50%; }
+/* HADİ BAŞLA'nın konumu karaktere göre script'ten (NASIL_YERI.buton) gelir */
 
 /* ================= KARAKTER SEÇİMİ =================
    Tasarımın tamamı character_page2.png (941x1672, 9:16 — kiosk ekranıyla

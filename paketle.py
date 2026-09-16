@@ -185,3 +185,31 @@ with open(OUT, "w", encoding="utf-8") as f:
 mb = os.path.getsize(OUT) / (1024*1024)
 print("Oluşturuldu: %s" % OUT)
 print("Boyut: %.1f MB" % mb)
+
+# --- Finder simgesi ---
+# Paket 60 MB'ın üzerinde bir HTML. macOS bu kadar büyük bir dosyaya
+# önizleme üretmeye çalışırken zaman aşımına uğruyor ve masaüstünde
+# ESKİ, önbellekte kalmış önizleme görünmeye devam ediyor. Çözüm:
+# dosyaya kendi simgemizi vermek. Simge açılış ekranından üretiliyor,
+# yani görsel değişirse simge de kendiliğinden güncelleniyor.
+# (Simge dosyanın resource fork'unda durur; FAT/exFAT bir USB'ye
+# kopyalanırsa kaybolur. Kiosk Windows olduğu için orada zaten önemsiz.)
+def simge_ver(dosya):
+    kaynak = os.path.join(SRC, "assets/home_page3.png")
+    if not os.path.isfile(kaynak):
+        return "açılış ekranı bulunamadı"
+    os.makedirs(OPT, exist_ok=True)
+    ikon = os.path.join(OPT, "ikon.png")
+    # Dikey görsel kareye sığdırılıp boşluklar açılış ekranının lacivertiyle dolduruluyor
+    subprocess.run(["sips", "-Z", "1024", "--padToHeightWidth", "1024", "1024",
+                    "--padColor", "0A2E6E", kaynak, "--out", ikon],
+                   check=True, capture_output=True)
+    betik = ('ObjC.import("AppKit");'
+             'var i=$.NSImage.alloc.initWithContentsOfFile(%r);'
+             '$.NSWorkspace.sharedWorkspace.setIconForFileOptions(i,%r,0)?"tamam":"olmadı"'
+             % (ikon, dosya))
+    s = subprocess.run(["osascript", "-l", "JavaScript", "-e", betik],
+                       capture_output=True, text=True)
+    return s.stdout.strip() or s.stderr.strip()
+
+print("Masaüstü simgesi:", simge_ver(OUT))

@@ -71,7 +71,7 @@ MAP = {
     "assets/prop_tree.png": ("prop_tree.png", "image/png", 900),
     "assets/prop_lamp.png": ("prop_lamp.png", "image/png", 900),
     "assets/prop_bollard.png": ("prop_bollard.png", "image/png", 900),
-    "assets/token_question.png": ("token_question.png", "image/png", 900),
+    "assets/token_question2.png": ("token_question2.png", "image/png", 900),   # soru simgesi: tablet
     "assets/life.png": ("life.png", "image/png", 900),   # dolu kalp şeridi
     "assets/life2.png": ("life2.png", "image/png", 900),   # boş kalp şeridi
     "assets/skor_tablosu.png": ("skor_tablosu.png", "image/png", 900),   # puan sayacı çerçevesi

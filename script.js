@@ -725,7 +725,7 @@ loadImage('bg_far', 'assets/bg_far.png');
 loadImage('ground', 'assets/ground_tile.png');
 // Sahil bulvarı dekoru (şeffaf PNG'ler)
 // Toplanacak soru simgesi (siber güvenlik temalı). Şeffaf geliyor → işlem yok.
-loadImage('token', 'assets/token_question.png');
+loadImage('token', 'assets/token_question2.png');
 loadImageKeyedSoft('barrier', 'assets/barrier.png');     // yol bariyeri (koyu zeminli geldi)
 loadImageKeyedSoft('puddle', 'assets/su_birikintisi.png');  // su birikintisi (koyu zeminli)
 loadImageKeyedSoft('simit',  'assets/simit_arabasi.png');   // simit arabası (koyu zeminli)
@@ -1496,12 +1496,14 @@ function drawScene(){
   }
 }
 
-/* Toplanacak SORU SİMGESİ (assets/token_question.png): siber güvenlik
-   temalı küme — kapüşonlu figür, kilitli ekranlar ve büyük sarı "?".
-   Uzaktayken okunan şey sarı soru işaretidir, gerisi dokusudur.
-   Görsel enine (1.19:1) olduğu için boy eski zarftan küçük tutuldu;
-   yoksa şeridin neredeyse tamamını kaplıyor.                            */
-let TOKEN_H = 118;         // simgenin ekrandaki boyu (genişlik ~1.19 katı)
+/* Toplanacak SORU SİMGESİ (assets/token_question2.png): ekranında açık
+   zarf, büyük sarı "?" ve kırmızı bildirim noktası olan bir tablet —
+   sorular artık "çocuğa gelen mesaj" olduğu için. Şeffaf zeminli.
+   Eski simge (token_question.png, hacker kümesi) enine 1.19:1 idi ve
+   boyu 118'di; bu simge dik (içerik kutusu 1051x1154, 0.91:1). Boy,
+   ekranda AYNI ALANI kaplayacak şekilde 134'e çıkarıldı: 118x140 ≈
+   134x122. Böylece şeritteki yeri ve uzaktan okunurluğu değişmiyor.    */
+let TOKEN_H = 134;         // simgenin ekrandaki boyu (genişlik ~0.91 katı)
 const TOKEN_LOW_Y = 108, TOKEN_HIGH_Y = 214;  // yerde / engel üstünde süzülme yüksekliği
 function drawToken(){
   const tt = 1/Math.sqrt(Math.max(0.4, token.u));

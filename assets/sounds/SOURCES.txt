@@ -1,9 +1,9 @@
-Sound effects — all CC0 (public domain, no attribution required)
+Sound effects — all CC0 (public domain, no attribution required) or synthesised
 https://creativecommons.org/publicdomain/zero/1.0/
 
 All files were converted to 16-bit PCM WAV with afconvert; the sound itself is unchanged.
 
-tik.wav         Kenney — Interface Sounds    bong_001.ogg
+tik.wav         same file as the Bag Merge button sound (sine sweep 280->950 Hz, 70 ms, synthesised for that game)
 geri_sayim.wav  Kenney — Interface Sounds    bong_001.ogg
 basla.wav       Kenney — Interface Sounds    maximize_006.ogg
 zipla.wav       Kenney — Interface Sounds    maximize_008.ogg

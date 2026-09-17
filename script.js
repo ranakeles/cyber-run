@@ -482,7 +482,7 @@ const assetURL = p => p + ASSET_V;
    değerler ölçülerek eşitlendi, sık çalanlar (zıplama, şerit) bilerek
    daha kısık. Kioskta dinleyip BURADAN ayarla.                        */
 const SESLER = {
-  tik:        { src:'assets/sounds/tik.wav',        ses:0.8  },  // buton
+  tik:        { src:'assets/sounds/tik.wav',        ses:0.7  },  // buton — Bag Merge'deki ses, aynı seviyede
   geri_sayim: { src:'assets/sounds/geri_sayim.wav', ses:1.4  },  // 3-2-1 her rakam
   basla:      { src:'assets/sounds/basla.wav',      ses:0.9  },  // sayım bitti
   zipla:      { src:'assets/sounds/zipla.wav',      ses:0.45 },

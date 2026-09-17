@@ -37,6 +37,7 @@ print("Kaynak klasör:", SRC)
 #          tam çözünürlük sadece paketi şişirir.
 TAM = None
 SES = "ses"      # görsel değil: dönüştürülmeden gömülür
+HAM = SES        # SVG gibi sips'in dokunmaması gereken dosyalar da aynı yoldan
 # Kodda geçen asset yolu -> (paketteki ad, tür, azami genişlik)
 MAP = {
     "assets/bg_far.png": ("bg_far.jpg", "image/jpeg", TAM),
@@ -52,6 +53,7 @@ MAP = {
     "assets/pause_card_girl.png": ("pause_card_girl.png", "image/png", TAM),   # duraklama kartı (kız)
     "assets/end_page7.png": ("end_page7.jpg", "image/jpeg", TAM),   # bitiş ekranı (oğlan)
     "assets/end_page_girl.png": ("end_page_girl.jpg", "image/jpeg", TAM),   # bitiş ekranı (kız)
+    "assets/logo_8524edad42.svg": ("logo.svg", "image/svg+xml", HAM),   # ana ekran logosu (vektör, olduğu gibi)
     "assets/character_page2.png": ("character_page2.jpg", "image/jpeg", TAM),   # karakter seçim ekranı (9:16)
     "assets/how_to_play_boy.png": ("how_to_play_boy.png", "image/png", TAM),   # nasıl oynanır (oğlan)
     "assets/how_to_play_girl.png": ("how_to_play_girl.png", "image/png", TAM),   # nasıl oynanır (kız)

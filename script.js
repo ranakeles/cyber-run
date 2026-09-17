@@ -2421,6 +2421,8 @@ function anaSayfayaDon(){
   $('#nameScreen').classList.add('hidden');
   $('#charScreen').classList.add('hidden');
   $('#startScreen').classList.remove('hidden');
+  // Ekran gizliyken pencere boyu değiştiyse logo eski yerde kalmasın
+  if(window.logoYerlestir) window.logoYerlestir();
   state = 'idle';
 }
 $('#againBtn').addEventListener('click', anaSayfayaDon);
@@ -2514,6 +2516,32 @@ resize();
   const a = $('#homeImg'), b = $('#homeBg');
   if(a) a.src = home;
   if(b) b.src = home;
+  /* Logo, home_page3.png'nin sağ üstündeki boş gökyüzüne. O bölge ölçüldü:
+     görselde başlık y=140'ta başlıyor, üstü baştan sona düz mavi gök
+     (ort. rgb 1,124,243 — beyaz yazı rahat okunuyor). Logo görsel
+     genişliğinin %40'ı (oran 622:125.4 → ~69 px boy), üstten ve sağdan
+     görsel genişliğinin %3.5'i kadar içeride: alt kenarı y≈99'da,
+     başlığa 40 px'ten fazla mesafe var.
+     Görsel ekranda 'contain' ile çizildiği ve yerel boyutundan büyümediği
+     için konum görselin EKRANDAKİ kutusundan hesaplanıyor.            */
+  const logo = $('#homeLogo');
+  if(logo){
+    logo.src = assetURL('assets/logo_8524edad42.svg');
+    const LOGO_GEN = 0.40, LOGO_PAY = 0.035;
+    const logoYerlestir = () => {
+      if(!a || !a.naturalWidth) return;
+      const r = a.getBoundingClientRect(), k = a.parentElement.getBoundingClientRect();
+      if(!r.width) return;                       // ekran gizliyken ölçülemez
+      const gen = r.width * LOGO_GEN, pay = r.width * LOGO_PAY;
+      logo.style.width = gen + 'px';
+      logo.style.left  = (r.right - k.left - pay - gen) + 'px';
+      logo.style.top   = (r.top - k.top + pay) + 'px';
+    };
+    a.addEventListener('load', logoYerlestir);
+    window.addEventListener('resize', logoYerlestir);
+    logoYerlestir();
+    window.logoYerlestir = logoYerlestir;        // ana sayfaya dönülünce de çağrılır
+  }
   // İsim ekranı tasarımı (klavye dahil görselin içinde)
   const isim = assetURL('assets/enter_name.png');
   const ns = $('#nameStage'), nb = $('#nameBg');

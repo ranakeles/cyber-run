@@ -1,0 +1,23 @@
+Sound effects — all CC0 (public domain, no attribution required) or synthesised
+https://creativecommons.org/publicdomain/zero/1.0/
+
+All files were converted to 16-bit PCM WAV with afconvert; the sound itself is unchanged.
+
+tik.wav         same file as the Bag Merge button sound (sine sweep 280->950 Hz, 70 ms, synthesised for that game)
+geri_sayim.wav  Kenney — Interface Sounds    bong_001.ogg
+basla.wav       Kenney — Interface Sounds    maximize_006.ogg
+zipla.wav       Kenney — Interface Sounds    maximize_008.ogg
+serit.wav       Kenney — RPG Audio           cloth2.ogg
+mesaj.wav       SubspaceAudio — The Essential Retro Video Game Sound Effects Collection   sfx_sound_neutral5.wav
+dogru.wav       Kenney — Digital Audio       pepSound4.ogg
+yanlis.wav      Kenney — Digital Audio       phaserDown3.ogg
+kacti.wav       SubspaceAudio — The Essential Retro Video Game Sound Effects Collection   sfx_sound_neutral5.wav
+carpma.wav      Kenney — Digital Audio       lowRandom.ogg
+seri.wav        Kenney — Digital Audio       powerUp12.ogg
+bitis.wav       Kenney — Music Jingles       jingles_PIZZI02.ogg
+
+Kenney:        https://kenney.nl/assets
+SubspaceAudio: https://opengameart.org/content/512-sound-effects-8-bit-style
+
+Background music — CC0
+muzik.ogg       section31 — Winning the Race    https://opengameart.org/content/winning-the-race   (file unchanged)

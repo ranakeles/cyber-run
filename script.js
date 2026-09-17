@@ -722,9 +722,9 @@ RUN_KEYS_KIZ.forEach(k => loadImage(k, 'assets/'+k+'.png'));
    style.css'teki `body.kiz` kurallarında.                                */
 const KARAKTER = {
   oglan: { kareler:RUN_KEYS,     mola:'assets/pause_card.png',
-           molaAr:1122/1402,     bitis:'assets/end_page7.png' },
+           molaAr:1122/1402,     bitis:'assets/end_page_boy.png' },
   kiz:   { kareler:RUN_KEYS_KIZ, mola:'assets/pause_card_girl.png',
-           molaAr:1199/1312,     bitis:'assets/end_page_girl.png' }
+           molaAr:1199/1312,     bitis:'assets/end_page_girl2.png' }
 };
 let karakter = 'oglan';                 // seçilmezse oğlanla başlar
 let MOLA_AR_AKTIF = KARAKTER.oglan.molaAr;
@@ -853,7 +853,7 @@ const STAGE_AR = 941/1672;   // sokak görselinin oranı (~9:16). Sahne bu orana
    aynen korunuyor.                                                        */
 const TASARIM_H = 900;       // mevcut boyların ayarlandığı sahne yüksekliği
 let OLCEK = 1;               // H / TASARIM_H — resize() günceller
-const END_AR = 853/1844;     // bitiş ekranı tasarımının oranı (daha dar)
+const END_AR = 941/1672;     // bitiş ekranı tasarımının oranı (9:16, kioskla aynı)
 const AD_AR  = 1024/1536;    // isim ekranı tasarımının oranı (daha geniş)
 const SECIM_AR = 941/1672;   // karakter seçim ekranı tasarımının oranı (9:16, kioskla aynı)
 /* Kart tam ekranı kaplamaz: oyun sahnesinin genişliğinin bu kadarını kaplar.
@@ -880,8 +880,9 @@ function resize(){
   // Üst bar sahneyle aynı genişlikte olsun: skor sahnenin sağ kenarına otursun
   const hud = document.getElementById('hud');
   if(hud) hud.style.width = W + 'px';
-  /* Bitiş ekranı tasarımı 853:1844 — oyun sahnesinden daha dar. Kendi
-     oranıyla ölçülendiriliyor ki kutular görselin üstüne birebir otursun.
+  /* Bitiş ekranı tasarımı 941:1672 (9:16). Eskisi 853:1844 idi ve kioskta
+     yanlarda 96'şar px boş kalıyordu. Kendi oranıyla ölçülendiriliyor ki
+     kutular görselin üstüne birebir otursun.
      Yazı boyu da yüksekliğe bağlanıyor: ekran büyüyünce yazı da büyür. */
   const es = document.getElementById('endStage');
   if(es){
@@ -2394,7 +2395,7 @@ window.addEventListener('keydown', e => {
    sırasıyla en alta eklenir — yoksa çocuk kendi puanını hiç göremezdi.
    `kayit` bu oyunun kaydı (nesne kimliğiyle bulunur, aynı puanlı başka
    satırla karışmaz), `sira` ise listeye eklendikten sonraki 0 tabanlı sırası. */
-const LB_SATIR = 8;          // panelde kaç sıra (end_page7 paneli)
+const LB_SATIR = 8;          // panelde kaç sıra (end_page_boy / end_page_girl2 paneli)
 function renderLb(target, kayit, sira){
   const sirali = LB.slice().sort((a,b)=>b.sc-a.sc);
   const satirlar = sirali.slice(0, LB_SATIR).map((r,i)=>({ r, i }));
@@ -2546,30 +2547,36 @@ resize();
 {
   // Başlangıç ekranı: kullanıcının hazırladığı tam ekran tasarım
   // Başlangıç ekranı: iki karakter birlikte (seçim burada değil, sonraki ekranda)
-  const home = assetURL('assets/home_page3.png');
+  const home = assetURL('assets/home_page4.png');   // 941x1672, 9:16 — kioskla aynı oran
   const a = $('#homeImg'), b = $('#homeBg');
   if(a) a.src = home;
   if(b) b.src = home;
-  /* Logo, home_page3.png'nin sağ üstündeki boş gökyüzüne. O bölge ölçüldü:
-     görselde başlık y=140'ta başlıyor, üstü baştan sona düz mavi gök
-     (ort. rgb 1,124,243 — beyaz yazı rahat okunuyor). Logo görsel
-     genişliğinin %40'ı (oran 622:125.4 → ~69 px boy), üstten ve sağdan
-     görsel genişliğinin %3.5'i kadar içeride: alt kenarı y≈99'da,
-     başlığa 40 px'ten fazla mesafe var.
-     Görsel ekranda 'contain' ile çizildiği ve yerel boyutundan büyümediği
-     için konum görselin EKRANDAKİ kutusundan hesaplanıyor.            */
+  /* Logo, home_page4.png'nin (941x1672) sağ üstündeki boş gökyüzüne.
+     O bölge ölçüldü: başlık y=220'de başlıyor; üstü düz mavi gök (ort.
+     rgb 0,121,244 — beyaz yazı rahat okunuyor). AMA en sağda x≥846'da,
+     y=77'den aşağı bir bulut var; beyaz "TECHNOLOGY" onun üstüne binerse
+     okunmuyordu. Bu yüzden logonun sağ kenarı bulutun soluna, x=830'a
+     çekildi. Kutu (görsel pikseli): x 491-830, y 33-101 — başlığa 119 px,
+     buluta 16 px mesafe. Genişlik görselin %36'sı (oran 622:125.4).
+     Görsel ekranda 'contain' ile çizildiği için konum, görselin ekranda
+     GERÇEKTE çizildiği kutudan hesaplanıyor (img elemanı ekranı kaplıyor). */
   const logo = $('#homeLogo');
   if(logo){
     logo.src = assetURL('assets/logo_8524edad42.svg');
-    const LOGO_GEN = 0.40, LOGO_PAY = 0.035;
+    const LOGO = { gW:941, sag:830, ust:33, gen:339 };   // görsel pikseli
     const logoYerlestir = () => {
       if(!a || !a.naturalWidth) return;
-      const r = a.getBoundingClientRect(), k = a.parentElement.getBoundingClientRect();
-      if(!r.width) return;                       // ekran gizliyken ölçülemez
-      const gen = r.width * LOGO_GEN, pay = r.width * LOGO_PAY;
-      logo.style.width = gen + 'px';
-      logo.style.left  = (r.right - k.left - pay - gen) + 'px';
-      logo.style.top   = (r.top - k.top + pay) + 'px';
+      const k = a.getBoundingClientRect();
+      if(!k.width) return;                       // ekran gizliyken ölçülemez
+      // object-fit:contain — görselin kutu içinde çizildiği alan
+      const oran = a.naturalWidth / a.naturalHeight;
+      let gw = k.width, gh = k.height;
+      if(gw/gh > oran) gw = gh*oran; else gh = gw/oran;
+      const gx = (k.width - gw)/2, gy = (k.height - gh)/2;
+      const s = gw / LOGO.gW;
+      logo.style.width = (LOGO.gen*s) + 'px';
+      logo.style.left  = (gx + (LOGO.sag - LOGO.gen)*s) + 'px';
+      logo.style.top   = (gy + LOGO.ust*s) + 'px';
     };
     a.addEventListener('load', logoYerlestir);
     window.addEventListener('resize', logoYerlestir);

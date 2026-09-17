@@ -166,25 +166,34 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 .overlay.home{ padding:0; background:#0a1a3a; gap:0; }
 .home-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
   filter:blur(26px) brightness(.65); transform:scale(1.12); }
-.home-img{ position:relative; z-index:1; max-width:100%; max-height:100%;
+/* Görsel ekranı DOLDURUR (contain): eskiden yalnızca max-width/max-height
+   vardı ve görsel kendi boyundan büyümüyordu — 1080x1920 kioskta 853x1844
+   kalıp dört yanda boşluk bırakıyordu. home_page4 9:16 olduğu için kioskta
+   artık ekranı tam kaplıyor. */
+.home-img{ position:absolute; inset:0; z-index:1; width:100%; height:100%;
   object-fit:contain; filter:drop-shadow(0 10px 40px rgba(0,0,0,.5)); }
 .home-logo{ position:absolute; z-index:1; height:auto; pointer-events:none; }
 .home-hit{ position:absolute; inset:0; z-index:2; background:none; border:none;
   cursor:pointer; -webkit-tap-highlight-color:transparent; }
 
 /* ================= BİTİŞ EKRANI =================
-   Tasarımın tamamı end_page7.png. Sahne, görselin en-boy oranıyla (853:1844)
-   script'te ölçülendirilir; içindeki her kutu SAHNENİN yüzdesi olarak
+   Tasarımın tamamı end_page_boy.png / end_page_girl2.png (941x1672, 9:16 —
+   kioskla aynı oran; eski end_page7 853x1844 idi, kioskta yanlarda boşluk
+   kalıyordu). Sahne görselin en-boy oranıyla script'te ölçülendirilir; içindeki her kutu SAHNENİN yüzdesi olarak
    konumlanır, böylece hangi ekranda olursa olsun görselin üstüne oturur.
    Yüzdeler görselin pikselleri taranarak ÖLÇÜLDÜ — görsel değişirse
    yeniden ölçülmeli. Yazı boyu da sahne yüksekliğine bağlı (font-size
    script'te veriliyor), yani ekranla birlikte büyüyüp küçülür.
 
-   end_page7.png (853x1844) içinde ölçülen ham piksel kutuları:
-     kurdele      x 177-679  y  302- 420
-     skor tablosu x 206-644  y  520-1071
-     ANA SAYFA    x  47-406  y 1629-1735
-     TEKRAR DENE  x 442-809  y 1628-1736
+   end_page_boy.png (941x1672) içinde ölçülen ham piksel kutuları
+   (end_page_girl2 ile en fazla 2 px fark — iki görsel aynı düzende):
+     kurdele      x 254-680  y  316- 414
+     skor tablosu x 282-654  y  497- 989
+     ANA SAYFA    x 143-458  y 1449-1544
+     TEKRAR DENE  x 487-802  y 1451-1544
+   (Ölçüm yöntemi eski end_page7'de CSS'teki eski değerleri birebir buldu.)
+   Kurdele kavisli: üst kenarı ortada dar (x 313-643), altta geniş; skor
+   ortalanarak yazıldığı için alt-orta satırların ortak aralığı alındı.
 
    Kurdelenin İKİ bandı var: üstte açık gök mavisi (yazılabilir), altında
    koyu mavi şerit. Skor yalnızca ÜST banda yazılır — koyu şeride taşarsa
@@ -193,11 +202,14 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 .end-stage{ position:relative; z-index:1; background-size:100% 100%; background-repeat:no-repeat;
   filter:drop-shadow(0 10px 40px rgba(0,0,0,.5)); }
 /* Kurdele: sadece skor. Rakamlar HUD'dakiyle aynı görselden dizilir. */
-.end-skor{ position:absolute; left:20.75%; width:58.97%; top:16.38%; height:6.45%; }
+.end-skor{ position:absolute; left:26.99%; width:45.27%; top:18.90%; height:5.86%; }
 /* SKOR TABLOSU paneli — oynayanların sıralaması */
-.end-lb{ position:absolute; left:24.15%; width:51.47%; top:28.20%; height:29.93%;
+.end-lb{ position:absolute; left:29.97%; width:39.53%; top:29.72%; height:29.43%;
   display:flex; flex-direction:column; justify-content:space-evenly;
-  padding:2.5% 5.5%; font-family:var(--hud); color:#1f3a63; }
+  /* Dolgu yüzdesi SAHNE genişliğine göre hesaplanır (CSS kuralı). Sahne
+     853'ten 941 oranına genişleyince 5.5% yanlarda 59 px'e çıktı ve
+     "ZEYNEP" bile sığmadı; 3% eski ~49 px'e yakın ve ad alanı eskisi kadar. */
+  padding:2.5% 3%; font-family:var(--hud); color:#1f3a63; }
 .lb-satir{ display:flex; align-items:center; gap:.5em; font-size:.95em; line-height:1; }
 /* Henüz dolmamış sıralar: yer kaplar ama görünmez (bkz. renderLb) */
 .lb-satir.bos{ visibility:hidden; }
@@ -211,9 +223,9 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 /* Görseldeki butonların üstündeki görünmez dokunma alanları */
 .end-hit{ position:absolute; background:none; border:none; padding:0; cursor:pointer;
   -webkit-tap-highlight-color:transparent; border-radius:99px; }
-/* Butonlar yan yana (end_page7'den ölçüldü) */
-.end-home { left:5.51%;  width:42.20%; top:88.34%; height:5.80%; }
-.end-again{ left:51.82%; width:43.14%; top:88.29%; height:5.91%; }
+/* Butonlar yan yana (end_page_boy / end_page_girl2'den ölçüldü) */
+.end-home { left:15.20%; width:33.48%; top:86.66%; height:5.68%; }
+.end-again{ left:51.75%; width:33.48%; top:86.78%; height:5.56%; }
 /* ================= NASIL OYNANIR =================
    Duraklama kartıyla aynı kabuğu kullanıyor (.pause-overlay/.pause-stage),
    yalnızca arka plan ve buton kutusu farklı. Her karakterin kartı ayrı
@@ -254,24 +266,19 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 .char-girl{ left:50.80%; width:44.31%; top:41.27%; height:26.85%; }
 
 /* ---------- KIZ KARAKTER SEÇİLİYKEN ----------
-   Kızın duraklama kartı ve bitiş ekranı AYRI görseller; ikisinin de kutuları
-   kendi görsellerinden ayrıca ÖLÇÜLDÜ, oğlanınkiler bunlara oturmuyor.
-   Görselleri script veriyor, kutular burada.
+   Kızın duraklama kartı AYRI görsel; kutuları kendi görselinden ayrıca
+   ÖLÇÜLDÜ, oğlanınkiler ona oturmuyor. Görseli script veriyor, kutular burada.
 
    pause_card_girl.png (1199x1312):
      DEVAM ET   x 241-900  y 654-838
      ANA SAYFA  x 237-905  y 911-1093
-   end_page_girl.png (853x1844):
-     kurdele      x 181-674  y  303- 417   (yalnızca AÇIK bant — bkz. bitiş ekranı notu)
-     skor tablosu x 210-641  y  517-1065
-     ANA SAYFA    x  49-407  y 1627-1732
-     TEKRAR DENE  x 442-804  y 1626-1734                                  */
+
+   Bitiş ekranında kıza ayrı kural YOK: end_page_girl2.png oğlanınkiyle aynı
+   düzende (941x1672; kurdele, panel ve butonlar en fazla 2 px farklı),
+   o yüzden yukarıdaki .end-* kuralları ikisine de oturuyor.
+   (Eski end_page_girl.png 853x1844'ün kendi kuralları vardı.)             */
 body.kiz .pause-resume{ left:20.10%; width:55.05%; top:49.85%; height:14.10%; }
 body.kiz .pause-home  { left:19.77%; width:55.80%; top:69.44%; height:13.95%; }
-body.kiz .end-skor{ left:21.22%; width:57.91%; top:16.43%; height:6.24%; }
-body.kiz .end-lb  { left:24.62%; width:50.64%; top:28.04%; height:29.77%; }
-body.kiz .end-home { left:5.74%;  width:42.09%; top:88.23%; height:5.75%; }
-body.kiz .end-again{ left:51.82%; width:42.56%; top:88.18%; height:5.91%; }
 
 /* ================= İSİM GİRİŞİ =================
    Tasarımın tamamı enter_name.png — klavye dahil GÖRSELDE çizili. Kod

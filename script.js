@@ -528,14 +528,64 @@ function sesCal(ad, gecikme = 0){
   kaynak.connect(kazanc).connect(sesBaglam.destination);
   kaynak.start(sesBaglam.currentTime + gecikme);
 }
+/* ---- ARKA PLAN MÜZİĞİ ----
+   "Winning the Race" — section31, OpenGameArt, CC0. Başka parçaya geçmek
+   için dosyayı değiştirmek yeterli (paketle.py'deki satırla birlikte).
+   Müzik koşu başlayınca (sayım bitince) başlar ve döngüde çalar. Seviyesi
+   her karede duruma göre yumuşakça ayarlanır:
+     koşu            → tam (MUZIK_SES)
+     soru / cevap    → yarısı: çocuk okumaya odaklansın
+     duraklama, sayım → sessiz (müzik arkada akmaya devam eder)
+     bitiş, menüler  → kısılarak susar, sonra durur; yeni oyun baştan başlar
+   Parça efektlerden çok daha yüksek kaydedilmiş (ölçüldü); o yüzden kısık. */
+const MUZIK = { src:'assets/sounds/muzik.ogg' };
+const MUZIK_SES = 0.2;
+let muzikTampon = null, muzikKaynak = null, muzikKazanc = null;
+if(sesBaglam){
+  const url = MUZIK.src.startsWith('data:') ? MUZIK.src : assetURL(MUZIK.src);
+  fetch(url).then(r => r.arrayBuffer())
+    .then(b => new Promise((ok, no) => sesBaglam.decodeAudioData(b, ok, no)))
+    .then(t => { muzikTampon = t; })
+    .catch(() => {});            // müzik yoksa oyun sessiz devam eder
+  muzikKazanc = sesBaglam.createGain();
+  muzikKazanc.gain.value = 0;
+  muzikKazanc.connect(sesBaglam.destination);
+}
+function muzikBaslat(){
+  if(!muzikTampon || muzikKaynak) return;
+  muzikKaynak = sesBaglam.createBufferSource();
+  muzikKaynak.buffer = muzikTampon;
+  muzikKaynak.loop = true;
+  muzikKaynak.connect(muzikKazanc);
+  muzikKaynak.start();
+}
+function muzikGuncelle(dt){
+  if(!muzikKazanc) return;
+  let hedef = 0;
+  if(state === 'flying') hedef = 1;
+  else if(state === 'question' || state === 'feedback') hedef = 0.5;
+  if(!sesAcik) hedef = 0;
+  if(hedef > 0) muzikBaslat();
+  const g = muzikKazanc.gain;
+  const simdi = g.value, istenen = hedef * MUZIK_SES;
+  // Açılış ve kısılma ~0.6 sn'de tamamlansın; ani sıçrama cızırtı yapar
+  const adim = MUZIK_SES * dt / 0.6;
+  const yeni = Math.abs(istenen - simdi) <= adim ? istenen : simdi + Math.sign(istenen - simdi) * adim;
+  if(yeni !== simdi) g.value = yeni;
+  // Oyun bittiyse ya da menüye dönüldüyse, sessize inince tamamen durdur
+  if(yeni === 0 && muzikKaynak && state !== 'paused' && state !== 'question' && state !== 'feedback'){
+    muzikKaynak.stop(); muzikKaynak.disconnect(); muzikKaynak = null;
+  }
+}
+
 /* Butonlara dokununca tık. Cevap butonları hariç: onların kendi doğru/yanlış
    sesi var, üst üste binmesin. */
 document.addEventListener('pointerdown', e => {
   const b = e.target.closest && e.target.closest('button');
   if(b && !b.classList.contains('mail-hit')) sesCal('tik');
 }, true);
-/* Sessize alma: M tuşu. Kioskta ekrana buton koymadık; görevli klavyeyle
-   kapatabilsin. İsim yazarken M harfi olarak kalsın diye orada çalışmaz. */
+/* Sessize alma: M tuşu (efektler VE müzik). Kioskta ekrana buton koymadık;
+   görevli klavyeyle kapatabilsin. İsim yazarken M harfi olarak kalsın diye orada çalışmaz. */
 window.addEventListener('keydown', e => {
   if((e.key === 'm' || e.key === 'M') && document.getElementById('nameScreen').classList.contains('hidden')){
     sesAcik = !sesAcik;
@@ -1825,6 +1875,7 @@ function loop(now){
   if(state !== 'idle' && state !== 'paused') updateSkyPlane(dt);
   // Başlangıç ekranında sahne tamamen kapalı (tam ekran tasarım) → boşuna çizme
   if(state !== 'idle') drawScene();
+  muzikGuncelle(dt);
   requestAnimationFrame(loop);
 }
 

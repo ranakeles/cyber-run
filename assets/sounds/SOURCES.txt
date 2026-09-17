@@ -18,3 +18,6 @@ bitis.wav       Kenney — Music Jingles       jingles_PIZZI02.ogg
 
 Kenney:        https://kenney.nl/assets
 SubspaceAudio: https://opengameart.org/content/512-sound-effects-8-bit-style
+
+Background music — CC0
+muzik.ogg       section31 — Winning the Race    https://opengameart.org/content/winning-the-race   (file unchanged)

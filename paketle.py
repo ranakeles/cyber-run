@@ -94,6 +94,7 @@ MAP = {
     "assets/sounds/carpma.wav": ("carpma.wav", "audio/wav", SES),
     "assets/sounds/seri.wav": ("seri.wav", "audio/wav", SES),
     "assets/sounds/bitis.wav": ("bitis.wav", "audio/wav", SES),
+    "assets/sounds/muzik.ogg": ("muzik.ogg", "audio/ogg", SES),   # arka plan müziği
 }
 
 def data_uri(yol, fname, mime, azami):

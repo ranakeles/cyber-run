@@ -317,9 +317,10 @@ body.kiz .end-again{ left:51.82%; width:42.56%; top:88.18%; height:5.91%; }
 @keyframes qIn{ from{ opacity:0; transform:translateY(20px) scale(.96);} to{ opacity:1; transform:none; } }
 .mail-stage > div{ position:absolute; font-family:var(--mailfont); color:#2b2114; }
 .mail-ust{ display:flex; flex-direction:column; justify-content:center; gap:.15em; overflow:hidden; }
-.mail-kim{ font-weight:700; font-size:1.05em; line-height:1.15;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.mail-adres{ font-size:.86em; color:#8a7250; line-height:1.15;
+/* Kartta sadece gönderen adı var ("Annem", "Öğretmenim"); e-posta adresi
+   kaldırıldı — hiçbir sorunun cevabı adrese bağlı değildi. Ad tek başına
+   kaldığı için biraz büyük ve başlık alanında dikey ortalı. */
+.mail-kim{ font-weight:700; font-size:1.25em; line-height:1.15;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .mail-govde{ display:flex; flex-direction:column; overflow:hidden; }
 .mail-govde .konu{ font-weight:800; font-size:1.06em; line-height:1.25; margin-bottom:.5em; }

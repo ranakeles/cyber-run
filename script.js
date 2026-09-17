@@ -474,6 +474,74 @@ const IMAGES = {};
 const ASSET_V = '?v=' + Date.now();
 const assetURL = p => p + ASSET_V;
 
+/* ---- SES EFEKTLERİ (assets/sounds/) ----
+   Sesler Kenney.nl ve OpenGameArt (SubspaceAudio) paketlerinden, hepsi CC0.
+   Kullanıcı dinleyip seçti; paketlerdeki OGG'lerden biri Chrome'da hiç
+   açılmadığı için hepsi düz WAV'a çevrildi (kioskta sessizce susmasın).
+   `ses` = o sesin kendi seviyesi. Dosyaların yüksekliği çok farklıydı;
+   değerler ölçülerek eşitlendi, sık çalanlar (zıplama, şerit) bilerek
+   daha kısık. Kioskta dinleyip BURADAN ayarla.                        */
+const SESLER = {
+  tik:        { src:'assets/sounds/tik.wav',        ses:0.8  },  // buton
+  geri_sayim: { src:'assets/sounds/geri_sayim.wav', ses:1.4  },  // 3-2-1 her rakam
+  basla:      { src:'assets/sounds/basla.wav',      ses:0.9  },  // sayım bitti
+  zipla:      { src:'assets/sounds/zipla.wav',      ses:0.45 },
+  serit:      { src:'assets/sounds/serit.wav',      ses:1.7  },  // şerit değiştirme
+  mesaj:      { src:'assets/sounds/mesaj.wav',      ses:0.6  },  // soru kartı açıldı
+  dogru:      { src:'assets/sounds/dogru.wav',      ses:1.1  },
+  yanlis:     { src:'assets/sounds/yanlis.wav',     ses:1.0  },
+  kacti:      { src:'assets/sounds/kacti.wav',      ses:0.45 },  // soru kaçırıldı
+  carpma:     { src:'assets/sounds/carpma.wav',     ses:0.45 },  // engele çarpma
+  seri:       { src:'assets/sounds/seri.wav',       ses:0.7  },  // 3'lü seri ve sonrası
+  bitis:      { src:'assets/sounds/bitis.wav',      ses:1.1  }   // oyun bitti
+};
+const ANA_SES = 0.8;            // hepsinin ortak seviyesi
+/* Web Audio: aynı ses üst üste çalabilir ve gecikmesiz başlar (<audio>
+   ilk çalışta takılıyordu). Bağlam açılışta kurulur, sesler hemen çözülür;
+   ama tarayıcı ilk dokunuşa kadar çalmaya izin vermez — o yüzden ilk
+   dokunuşta devam ettirilir. Çocuk zaten OYNA'ya basarak başlıyor.     */
+const AC = window.AudioContext || window.webkitAudioContext;
+const sesBaglam = AC ? new AC() : null;
+const SES_TAMPON = {};
+let sesAcik = true;
+if(sesBaglam){
+  for(const [ad, s] of Object.entries(SESLER)){
+    // Pakette src bir data: adresi olur; sonuna sürüm damgası eklenemez
+    const url = s.src.startsWith('data:') ? s.src : assetURL(s.src);
+    fetch(url).then(r => r.arrayBuffer())
+      .then(b => new Promise((ok, no) => sesBaglam.decodeAudioData(b, ok, no)))
+      .then(t => { SES_TAMPON[ad] = t; })
+      .catch(() => {});          // dosya yoksa o an sessiz geçer, oyun bozulmaz
+  }
+  const uyandir = () => { if(sesBaglam.state === 'suspended') sesBaglam.resume(); };
+  window.addEventListener('pointerdown', uyandir, true);
+  window.addEventListener('keydown', uyandir, true);
+}
+function sesCal(ad, gecikme = 0){
+  const t = SES_TAMPON[ad];
+  // Bağlam henüz uyanmadıysa ses sıraya girer, uyanınca çalar
+  if(!t || !sesAcik) return;
+  const kaynak = sesBaglam.createBufferSource();
+  kaynak.buffer = t;
+  const kazanc = sesBaglam.createGain();
+  kazanc.gain.value = SESLER[ad].ses * ANA_SES;
+  kaynak.connect(kazanc).connect(sesBaglam.destination);
+  kaynak.start(sesBaglam.currentTime + gecikme);
+}
+/* Butonlara dokununca tık. Cevap butonları hariç: onların kendi doğru/yanlış
+   sesi var, üst üste binmesin. */
+document.addEventListener('pointerdown', e => {
+  const b = e.target.closest && e.target.closest('button');
+  if(b && !b.classList.contains('mail-hit')) sesCal('tik');
+}, true);
+/* Sessize alma: M tuşu. Kioskta ekrana buton koymadık; görevli klavyeyle
+   kapatabilsin. İsim yazarken M harfi olarak kalsın diye orada çalışmaz. */
+window.addEventListener('keydown', e => {
+  if((e.key === 'm' || e.key === 'M') && document.getElementById('nameScreen').classList.contains('hidden')){
+    sesAcik = !sesAcik;
+  }
+});
+
 /* Oyun, görsellerin piksellerini okuyarak arka plan temizliyor ve boyut
    ölçüyor. Tarayıcı bunu SADECE bir sunucu üzerinden açıldığında yapabilir;
    dosyaya çift tıklayarak (file://) açılırsa engeller ve oyun bozuk görünür.
@@ -787,8 +855,15 @@ function resize(){
 window.addEventListener('resize', resize);
 
 // Şerit değiştirme: sağa/sola kaydırma + klavye (sadece uçuş sırasında)
-function goLeft(){  if(state==='flying') plane.lane = clamp(plane.lane-1,-1,1); }
-function goRight(){ if(state==='flying') plane.lane = clamp(plane.lane+1,-1,1); }
+function seritDegistir(yon){
+  if(state!=='flying') return;
+  const yeni = clamp(plane.lane+yon,-1,1);
+  if(yeni === plane.lane) return;          // kenardayken ses de çıkmasın
+  plane.lane = yeni;
+  sesCal('serit');
+}
+function goLeft(){  seritDegistir(-1); }
+function goRight(){ seritDegistir(+1); }
 // Zıplama: yukarı kaydır / yukarı ok / boşluk
 /* Zıplama ~120 px tepe, ~0.86 sn. Bariyeri (112) rahat aşar ama simit
    arabasını (250) asla aşamaz — hangi engelin atlanabildiği gözle anlaşılsın. */
@@ -799,7 +874,7 @@ function goRight(){ if(state==='flying') plane.lane = clamp(plane.lane+1,-1,1); 
 const JUMP_V0 = 560, GRAVITY = 1300;
 const JUMP_PEAK = (JUMP_V0*JUMP_V0)/(2*GRAVITY);   // tepe yüksekliği (px)
 function doJump(){
-  if(state==='flying' && plane.jumpY <= 0){ plane.jumpV = JUMP_V0; }
+  if(state==='flying' && plane.jumpY <= 0){ plane.jumpV = JUMP_V0; sesCal('zipla'); }
 }
 /* Hızlı iniş (Subway Surfers'daki gibi): havadayken aşağı kaydırınca ya da
    aşağı ok/S ile zıplama kesilir, karakter yola çakılır. Takla yok — sadece
@@ -1543,6 +1618,7 @@ function zarfaUygun(lane, u){
 function hitObstacle(){
   if(hitCool > 0) return;
   hitCool = 1.1; shake = 1;
+  sesCal('carpma');
   // Engele çarpmak SADECE puan götürür, can götürmez: canlar soru kararlarına ait
   score = Math.max(0, score - OBS_PENALTY);
   updateHud();
@@ -1830,6 +1906,7 @@ function missQuestion(){
      oyunun öğretmek istediği şey e-postayı doğru okumak, zarfı yakalamak
      değil. Can yalnızca YANLIŞ CEVAPTA gidiyor.                          */
   score = Math.max(0, score + PTS_MISS);
+  sesCal('kacti');
   updateHud();
   state = 'feedback';
   const f = $('#flash');
@@ -1916,6 +1993,7 @@ function govdeSigdir(){
 // Kontrol noktasına varınca soruyu aç
 function openQuestion(){
   state = 'question';
+  sesCal('mesaj');
   const m = aktifSoru;
   mailSahnesiKur(!!m.attach);
   $('#qFrom').textContent = m.from;
@@ -1939,8 +2017,11 @@ function decide(decision){
   if(isCorrect){
     correct++; streak++; bestStreak = Math.max(bestStreak, streak);
     delta = PTS_CORRECT + (streak>=3 ? STREAK_BONUS : 0);
+    sesCal('dogru');
+    if(streak>=3) sesCal('seri', 0.25);      // doğru sesinin hemen ardından
   } else {
     streak = 0; delta = PTS_WRONG; lives--;
+    sesCal('yanlis');
   }
   score = Math.max(0, score+delta);
   updateHud(isCorrect ? 0 : -1);
@@ -2246,6 +2327,7 @@ function renderLb(target, kayit, sira){
    skor tablosu.                                                        */
 function endGame(){
   state = 'ended';
+  sesCal('bitis');
   $('#hud').classList.add('hidden');
   $('#questionScreen').classList.add('hidden');
   /* Kayıt eklenir, sıralanır; oyuncunun gerçek sırası KIRPMADAN ÖNCE alınır.
@@ -2330,11 +2412,13 @@ function geriSayimBaslat(bitince){
          atılıp rAF durursa diye yine de sıfırlıyoruz. */
       lastTime = performance.now();
       state = 'flying';
+      sesCal('basla');
       if(bitince) bitince();
       return;
     }
     // Rakam boyu sahne yüksekliğine oranlı: kioskta da telefonda da aynı görünür
     rakamlariDiz(kutu, n, Math.round(H * 0.20));
+    sesCal('geri_sayim');
     kutu.classList.remove('vur'); void kutu.offsetWidth; kutu.classList.add('vur');
     n--;
     setTimeout(goster, SAYIM_MS);

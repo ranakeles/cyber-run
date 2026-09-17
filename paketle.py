@@ -36,6 +36,7 @@ print("Kaynak klasör:", SRC)
 #          engeller, ağaç/lamba, HUD parçaları. Bunlarda 900 bol bol yeter,
 #          tam çözünürlük sadece paketi şişirir.
 TAM = None
+SES = "ses"      # görsel değil: dönüştürülmeden gömülür
 # Kodda geçen asset yolu -> (paketteki ad, tür, azami genişlik)
 MAP = {
     "assets/bg_far.png": ("bg_far.jpg", "image/jpeg", TAM),
@@ -80,6 +81,19 @@ MAP = {
     "assets/barrier.png": ("barrier.png", "image/png", 900),
     "assets/su_birikintisi.png": ("su_birikintisi.png", "image/png", 900),
     "assets/simit_arabasi.png": ("simit_arabasi.png", "image/png", 900),
+    # Ses efektleri: olduğu gibi gömülür (sips görsel aracı, seslere dokunmaz)
+    "assets/sounds/tik.wav": ("tik.wav", "audio/wav", SES),
+    "assets/sounds/geri_sayim.wav": ("geri_sayim.wav", "audio/wav", SES),
+    "assets/sounds/basla.wav": ("basla.wav", "audio/wav", SES),
+    "assets/sounds/zipla.wav": ("zipla.wav", "audio/wav", SES),
+    "assets/sounds/serit.wav": ("serit.wav", "audio/wav", SES),
+    "assets/sounds/mesaj.wav": ("mesaj.wav", "audio/wav", SES),
+    "assets/sounds/dogru.wav": ("dogru.wav", "audio/wav", SES),
+    "assets/sounds/yanlis.wav": ("yanlis.wav", "audio/wav", SES),
+    "assets/sounds/kacti.wav": ("kacti.wav", "audio/wav", SES),
+    "assets/sounds/carpma.wav": ("carpma.wav", "audio/wav", SES),
+    "assets/sounds/seri.wav": ("seri.wav", "audio/wav", SES),
+    "assets/sounds/bitis.wav": ("bitis.wav", "audio/wav", SES),
 }
 
 def data_uri(yol, fname, mime, azami):
@@ -89,6 +103,9 @@ def data_uri(yol, fname, mime, azami):
     yeterli olur. Önbellekteki dosyanın adında genişlik de var (ör.
     child@900.png, answers@tam.png): kural değişince eski çözünürlükteki
     kopya yanlışlıkla yeniden kullanılmasın."""
+    if azami == SES:
+        with open(os.path.join(SRC, yol), "rb") as f:
+            return "data:%s;base64,%s" % (mime, base64.b64encode(f.read()).decode())
     kok, uzanti = os.path.splitext(fname)
     hedef = os.path.join(OPT, "%s@%s%s" % (kok, "tam" if azami is None else azami, uzanti))
     if not os.path.isfile(hedef):

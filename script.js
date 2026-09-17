@@ -1546,7 +1546,7 @@ function drawRunner(){
   /* Eskiden clamp(H/620, 0.85, 1.5) idi: 1.5'te tavan yaptığı için kioskta
      karakter büyümüyordu. Artık tavan yok; 900 px'te değeri eskisiyle aynı. */
   const S = (TASARIM_H/620) * OLCEK;
-  const x = project(plane.laneVis, 1).x;
+  let x = project(plane.laneVis, 1).x;
   // jumpY tasarım pikseli (oyun mantığı); ekranda ölçekli çizilir
   const footY = planeBaseY - plane.jumpY*OLCEK;            // zıplayınca yukarı kalkar
 
@@ -1576,6 +1576,25 @@ function drawRunner(){
     const charH = 145*S;                              // ekrandaki karakter boyu (sabit)
     const k  = charH / (img.height * fit.hRatio);
     const dw = img.width*k, dh = img.height*k;
+
+    /* EKRANDA KAL: kioskta (9:16) yol ayak hizasında ekrandan geniş; yan
+       şeritlerin ortası ekran kenarına düşüyor (1080 px'te x=28 / 1052) ve
+       çocuğun yarısı dışarıda kalıyordu. Çocuk, TÜM karelerin en geniş
+       halinin ekrana sığacağı kadar içeri çekilir. Hâlâ kendi şeridinin
+       içinde kalıyor (şerit çizgisine ~20 px var); çarpışma şeride göre
+       olduğu için oyun mantığı etkilenmez. Tüm karelerin kutusu birlikte
+       alınıyor ki kare değişince çocuk yana titremesin. Payın içinde
+       salınım ve eğilme de var. */
+    let solUc = 0, sagUc = 0;
+    for(const ad of frames){
+      const im = IMAGES[ad], f = spriteFit(im);
+      const kk = charH / (im.height * f.hRatio), w = im.width * kk;
+      const hiza = f.headCx != null ? f.headCx : f.cx;
+      solUc = Math.max(solUc, (hiza - f.left) * w);
+      sagUc = Math.max(sagUc, (f.left + f.wRatio - hiza) * w);
+    }
+    const pay = 12*S;
+    x = clamp(x, solUc + pay, W - sagUc - pay);
 
     /* Gölge YERDE kalır (planeBaseY), karakterle yükselmez — zıpladığını
        anlamanın en güçlü ipucu budur. Yükseldikçe küçülüp soluklaşır. */

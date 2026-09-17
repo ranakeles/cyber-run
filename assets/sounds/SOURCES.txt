@@ -9,7 +9,7 @@ basla.wav       Kenney — Interface Sounds    maximize_006.ogg
 zipla.wav       Kenney — Interface Sounds    maximize_008.ogg
 serit.wav       Kenney — RPG Audio           cloth2.ogg
 mesaj.wav       SubspaceAudio — The Essential Retro Video Game Sound Effects Collection   sfx_sound_neutral5.wav
-dogru.wav       Kenney — Interface Sounds    confirmation_003.ogg
+dogru.wav       Kenney — Digital Audio       pepSound4.ogg
 yanlis.wav      Kenney — Digital Audio       phaserDown3.ogg
 kacti.wav       SubspaceAudio — The Essential Retro Video Game Sound Effects Collection   sfx_sound_neutral5.wav
 carpma.wav      Kenney — Digital Audio       lowRandom.ogg

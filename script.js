@@ -488,7 +488,7 @@ const SESLER = {
   zipla:      { src:'assets/sounds/zipla.wav',      ses:0.45 },
   serit:      { src:'assets/sounds/serit.wav',      ses:1.7  },  // şerit değiştirme
   mesaj:      { src:'assets/sounds/mesaj.wav',      ses:0.6  },  // soru kartı açıldı
-  dogru:      { src:'assets/sounds/dogru.wav',      ses:1.1  },
+  dogru:      { src:'assets/sounds/dogru.wav',      ses:0.65 },  // ikinci seçim: eskisinden yüksek kayıtlı
   yanlis:     { src:'assets/sounds/yanlis.wav',     ses:1.0  },
   kacti:      { src:'assets/sounds/kacti.wav',      ses:0.45 },  // soru kaçırıldı
   carpma:     { src:'assets/sounds/carpma.wav',     ses:0.45 },  // engele çarpma

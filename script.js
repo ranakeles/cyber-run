@@ -531,12 +531,15 @@ function sesCal(ad, gecikme = 0){
 /* ---- ARKA PLAN MÜZİĞİ ----
    "Winning the Race" — section31, OpenGameArt, CC0. Başka parçaya geçmek
    için dosyayı değiştirmek yeterli (paketle.py'deki satırla birlikte).
-   Müzik koşu başlayınca (sayım bitince) başlar ve döngüde çalar. Seviyesi
-   her karede duruma göre yumuşakça ayarlanır:
-     koşu            → tam (MUZIK_SES)
-     soru / cevap    → yarısı: çocuk okumaya odaklansın
-     duraklama, sayım → sessiz (müzik arkada akmaya devam eder)
-     bitiş, menüler  → kısılarak susar, sonra durur; yeni oyun baştan başlar
+   Müzik ANA EKRANDAN itibaren hep çalar, oyunlar arasında da kesilmez
+   (kullanıcı isteği: önceden sadece koşuda çalıyordu). Döngüde döner;
+   seviyesi her karede duruma göre yumuşakça ayarlanır:
+     menüler, sayım, koşu, bitiş → tam (MUZIK_SES)
+     soru / cevap, duraklama     → yarısı: çocuk okumaya odaklansın,
+                                   duraklatınca da oyun "durdu" hissi versin
+   Tarayıcılar dokunulmadan ses çalmaya izin vermez: müzik açılış ekranında
+   ilk dokunuşla başlar. (Kioskta Chrome --autoplay-policy=no-user-gesture-required
+   ile açılırsa dokunmadan da çalar.)
    Parça efektlerden çok daha yüksek kaydedilmiş (ölçüldü); o yüzden kısık. */
 const MUZIK = { src:'assets/sounds/muzik.ogg' };
 const MUZIK_SES = 0.2;
@@ -561,21 +564,21 @@ function muzikBaslat(){
 }
 function muzikGuncelle(dt){
   if(!muzikKazanc) return;
-  let hedef = 0;
-  if(state === 'flying') hedef = 1;
-  else if(state === 'question' || state === 'feedback') hedef = 0.5;
-  if(!sesAcik) hedef = 0;
-  if(hedef > 0) muzikBaslat();
+  let hedef = 1;
+  if(state === 'question' || state === 'feedback') hedef = 0.5;
+  else if(state === 'paused' && !sayiliyor) hedef = 0.5;   // duraklama kartı (sayım değil)
+  if(!sesAcik) hedef = 0;                                   // M: susar ama akmaya devam eder
+  muzikBaslat();
   const g = muzikKazanc.gain;
   const simdi = g.value, istenen = hedef * MUZIK_SES;
   // Açılış ve kısılma ~0.6 sn'de tamamlansın; ani sıçrama cızırtı yapar
-  const adim = MUZIK_SES * dt / 0.6;
-  const yeni = Math.abs(istenen - simdi) <= adim ? istenen : simdi + Math.sign(istenen - simdi) * adim;
+  // dt eksi olabilir: donguBaslat lastTime'ı şimdiye çekiyor, sonraki karenin
+  // zaman damgası ondan biraz eski kalıyor. Eksi adım sesi ters yöne, sınırsız
+  // büyütüyordu (testte 3.1'e çıktı) — adım hep artı, sonuç hep 0..MUZIK_SES.
+  const adim = MUZIK_SES * Math.max(0, dt) / 0.6;
+  let yeni = Math.abs(istenen - simdi) <= adim ? istenen : simdi + Math.sign(istenen - simdi) * adim;
+  yeni = clamp(yeni, 0, MUZIK_SES);
   if(yeni !== simdi) g.value = yeni;
-  // Oyun bittiyse ya da menüye dönüldüyse, sessize inince tamamen durdur
-  if(yeni === 0 && muzikKaynak && state !== 'paused' && state !== 'question' && state !== 'feedback'){
-    muzikKaynak.stop(); muzikKaynak.disconnect(); muzikKaynak = null;
-  }
 }
 
 /* Butonlara dokununca tık. Cevap butonları hariç: onların kendi doğru/yanlış

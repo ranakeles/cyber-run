@@ -424,8 +424,20 @@ const FLOW_SPEED = 1.6 * 1.15;
    speedMul zemin, engel, zarf ve koşu animasyonuna AYNI ANDA uygulanır —
    yoksa katmanlar birbirinden kopar.                                     */
 const ZORLUK_SURE = 95;                 // sn: en yüksek zorluğa ulaşma süresi
-const SPEED_MAX = 2.7;                  // başlangıç hızının katı
+/* Başlangıç hızı: kullanıcı "başta çok yavaş" dedi (Eyl 2026). Oyun artık
+   1.0 yerine 1.5 hızla başlıyor; tavan (2.7) aynı, yani oyunun sonu
+   eskisinden hızlı değil, sadece yavaş kısım kısaldı. */
+const SPEED_START = 1.5;                // oyun bu hızla başlar
+const SPEED_MAX = 2.7;                  // en yüksek hız (eski başlangıcın katı)
 const ARA_DARALMA = 0.30;               // engeller arası mesafe en fazla %30 kısalır
+/* Engel sıklığı: iki engel arası bekleme bu aralıktan rastgele seçilir
+   (saniye, 1.0 hızda). Eskiden 1.9–3.1'di, kullanıcı "engel az" dedi;
+   ortalama 2.5 → 1.75 sn (%43 daha sık). Hız bölmesi sayesinde engeller
+   arası DÜNYA mesafesi hızla değişmiyor.
+   ENGEL_ARA_ALT: gerçek zamanda en az bu kadar ara — oyun sonunda hız
+   ve daralma birleşince engeller üst üste binmesin (zıplama 0.86 sn). */
+const ENGEL_ARA_MIN = 1.3, ENGEL_ARA_MAX = 2.2, ENGEL_ARA_ALT = 0.5;
+const ILK_ENGEL = 1.2;                  // oyun başladıktan kaç sn sonra ilk engel
 let speedMul = 1, playTime = 0, zorluk = 0;
 const obstacles = [];
 let obsTimer = 2.2, hitCool = 0, shake = 0;
@@ -1658,7 +1670,8 @@ function updateObstacles(dt){
        DÜNYA mesafesi sabit kalır (yoksa hızlandıkça seyrekleşip kolaylaşırdı),
        ama oyuncuya kalan tepki süresi kısalır. `zorluk` ayrıca mesafeyi de
        kısaltıyor: oyun ilerledikçe engeller hem hızlı hem SIK geliyor.     */
-    obsTimer = rand(1.9, 3.1) * (1 - ARA_DARALMA*zorluk) / speedMul;
+    obsTimer = Math.max(ENGEL_ARA_ALT,
+      rand(ENGEL_ARA_MIN, ENGEL_ARA_MAX) * (1 - ARA_DARALMA*zorluk) / speedMul);
     const lane = pickLane();
     if(!engelKoy(lane, types)) return;
     /* Zorluk yükseldikçe bazen İKİ şerit birden kapanır; üçüncü şerit her
@@ -1872,7 +1885,7 @@ function loop(now){
     // Oyun ilerledikçe hızlanır (bkz. SPEED_* sabitleri)
     playTime += dt;
     zorluk  = clamp(playTime/ZORLUK_SURE, 0, 1);
-    speedMul = 1 + (SPEED_MAX - 1) * zorluk;
+    speedMul = SPEED_START + (SPEED_MAX - SPEED_START) * zorluk;
     plane.bob += dt*7*speedMul; worldScroll += dt*1.6*speedMul;   // koşu + yol akışı
     plane.laneVis += (plane.lane - plane.laneVis) * Math.min(1, dt*12);  // şerit kaydır
     updateJump(dt);
@@ -1928,8 +1941,8 @@ function donguBaslat(){
 function startGame(){
   resize();
   plane.lane=0; plane.laneVis=0; plane.bob=0; plane.jumpY=0; plane.jumpV=0;
-  obstacles.length=0; obsTimer=2.4; hitCool=0; shake=0;
-  speedMul=1; playTime=0;                 // her oyun normal hızda başlar
+  obstacles.length=0; obsTimer=ILK_ENGEL; hitCool=0; shake=0;
+  speedMul=SPEED_START; playTime=0; zorluk=0;   // her oyun başlangıç hızında başlar
   skyPlane=null; skyTimer=rand(3,7);      // gökyüzü uçağı da baştan başlasın
   skyDeck.length=0; sonUcakKey=null;      // uçak sırası yeniden karılsın
   soruDestesi.length=0; aktifSoru=null;    // soru destesi yeniden karılsın

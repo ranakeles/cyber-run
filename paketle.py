@@ -42,7 +42,7 @@ HAM = SES        # SVG gibi sips'in dokunmaması gereken dosyalar da aynı yolda
 MAP = {
     "assets/bg_far.png": ("bg_far.jpg", "image/jpeg", TAM),
     "assets/ground_tile.png": ("ground_tile.jpg", "image/jpeg", TAM),
-    "assets/home_page3.png": ("home_page3.jpg", "image/jpeg", TAM),   # iki karakter birlikte
+    "assets/home_page4.png": ("home_page4.jpg", "image/jpeg", TAM),   # başlangıç, iki karakter (9:16)
     "assets/missed_question.png": ("missed_question.png", "image/png", TAM),   # kaçırılan soru kartı
     "assets/answers.png": ("answers.png", "image/png", TAM),   # doğru/yanlış kartları
     "assets/mail_body.png": ("mail_body.png", "image/png", TAM),   # e-posta kartı (eksiz)
@@ -51,8 +51,8 @@ MAP = {
     "assets/pause_card.png": ("pause_card.png", "image/png", TAM),   # duraklama kartı (şeffaf)
     "assets/pause_button.png": ("pause_button.png", "image/png", 900),   # HUD duraklatma butonu
     "assets/pause_card_girl.png": ("pause_card_girl.png", "image/png", TAM),   # duraklama kartı (kız)
-    "assets/end_page7.png": ("end_page7.jpg", "image/jpeg", TAM),   # bitiş ekranı (oğlan)
-    "assets/end_page_girl.png": ("end_page_girl.jpg", "image/jpeg", TAM),   # bitiş ekranı (kız)
+    "assets/end_page_boy.png": ("end_page_boy.jpg", "image/jpeg", TAM),   # bitiş ekranı (oğlan, 9:16)
+    "assets/end_page_girl2.png": ("end_page_girl2.jpg", "image/jpeg", TAM),   # bitiş ekranı (kız, 9:16)
     "assets/logo_8524edad42.svg": ("logo.svg", "image/svg+xml", HAM),   # ana ekran logosu (vektör, olduğu gibi)
     "assets/character_page2.png": ("character_page2.jpg", "image/jpeg", TAM),   # karakter seçim ekranı (9:16)
     "assets/how_to_play_boy.png": ("how_to_play_boy.png", "image/png", TAM),   # nasıl oynanır (oğlan)
@@ -215,7 +215,7 @@ print("Boyut: %.1f MB" % mb)
 # (Simge dosyanın resource fork'unda durur; FAT/exFAT bir USB'ye
 # kopyalanırsa kaybolur. Kiosk Windows olduğu için orada zaten önemsiz.)
 def simge_ver(dosya):
-    kaynak = os.path.join(SRC, "assets/home_page3.png")
+    kaynak = os.path.join(SRC, "assets/home_page4.png")
     if not os.path.isfile(kaynak):
         return "açılış ekranı bulunamadı"
     os.makedirs(OPT, exist_ok=True)

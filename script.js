@@ -103,7 +103,7 @@ const POOL = [
   // orta
   {from:"Bilim Merkezi", subj:"Gezi Biletin",
    text:"Yarınki gezi için biletin ekte, QR kodunu girişte okutman yeterli.", attach:"bilet.pdf", safe:true,
-   why:"Beklediğin bir bilet, senden başka bilgi istemiyor."},
+   why:"Beklediğin bir bilet, ekstra bilgi istemiyor."},
   {from:"Öğretmenim", subj:"Bu Haftanın Ödevleri",
    text:"Bu haftanın ödevleri ekte. Kolay gelsin!", attach:"odevler.pdf", safe:true,
    why:"Öğretmeninden beklediğin bir ödev dosyası."},
@@ -255,7 +255,7 @@ const POOL = [
   // orta
   {from:"Oyun Arkadaşı", subj:"Oyun Şifresi",
    text:"Oyundaki şifreni bana söylersen sana bedava eşya vereceğim, kimseye söylemem.", safe:false,
-   why:"Oyun arkadaşın bile olsa şifreni kimseyle paylaşma."},
+   why:"Oyun arkadaşın bile olsa şifreni asla kimseyle paylaşma; hesabını çalabilir."},
   {from:"Oyun Hilesi", subj:"Oyunda Hep Kazan!",
    text:"Bu dosyayı aç, oyunda hep kazan!", attach:"hile.exe", safe:false,
    why:"Hile dosyaları bilgisayara virüs bulaştırabilir."},
@@ -325,10 +325,10 @@ const POOL = [
   // zor
   {from:"Abin (bilinmeyen numara)", subj:"Neredesin?",
    text:"Merhaba ben abin. Canlı konumunu gönder, ben de oraya geleyim.", safe:false,
-   why:"Ailenden biri gibi görünse de bilmediğin bir numaraya konumunu verme."},
+   why:"Ailenden biri gibi görünse de bilmediğin bir numaradan konum bilgisi istemek risklidir; önce ailenden birine sor."},
   {from:"Annem (bilinmeyen numara)", subj:"Acil, Sesimi Dinle",
    text:"Sana az önce sesli mesaj gönderdim. Telefonum bozuk olduğu için sesim garip çıkabilir, hemen bildiğin hesaba para gönderir misin?", safe:false,
-   why:"Ses tanıdık gelse bile acil para isteğini büyüğüne yüz yüze sor."},
+   why:"Ses tanıdık gelse bile böyle acil para isteklerinde büyüğüne yüz yüze sor."},
   {from:"Kütüphane", subj:"Üyelik Yenileme",
    text:"Üyeliğini yenilemek için bu QR kodu okut, açılan sayfaya adını ve okulunu yaz.", link:"QR kodu okut", safe:false,
    why:"Tanıdık bir yer gibi görünse de bağlantı seni sahte bir sayfaya götürebilir."},

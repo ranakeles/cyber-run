@@ -2241,8 +2241,10 @@ const seriYazisi = n => n + "'" + seriEki(n) + ' seri!';
 function flash(ok, m, delta){
   const f = $('#flash');
   cevapKartiKur(ok ? 'dogru' : 'yanlis');
-  const truth = m.safe ? 'Bu mesaj GÜVENLİ idi. ' : 'Bu mesaj ŞÜPHELİ idi. ';
-  $('#fWhy').textContent = (ok?'':truth) + m.why;
+  /* Yanlış cevapta bir ara başa "Bu mesaj ŞÜPHELİ idi." ekleniyordu;
+     kaldırıldı (kullanıcı isteği): kartın başlığı zaten DOĞRU/YANLIŞ
+     diyor, cümle açıklamayı uzatıp yazıyı küçültüyordu. */
+  $('#fWhy').textContent = m.why;
   // Can satırı sadece yanlış cevapta yazılır — can başka türlü değişmiyor
   const canYazi = ok ? '' : '  •  −1 can';
   $('#fPts').textContent = (delta>=0?'+':'')+delta+' puan' + canYazi

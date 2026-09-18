@@ -2551,19 +2551,22 @@ resize();
   const a = $('#homeImg'), b = $('#homeBg');
   if(a) a.src = home;
   if(b) b.src = home;
-  /* Logo, home_page4.png'nin (941x1672) sağ üstündeki boş gökyüzüne.
-     O bölge ölçüldü: başlık y=220'de başlıyor; üstü düz mavi gök (ort.
-     rgb 0,121,244 — beyaz yazı rahat okunuyor). AMA en sağda x≥846'da,
-     y=77'den aşağı bir bulut var; beyaz "TECHNOLOGY" onun üstüne binerse
-     okunmuyordu. Bu yüzden logonun sağ kenarı bulutun soluna, x=830'a
-     çekildi. Kutu (görsel pikseli): x 491-830, y 33-101 — başlığa 119 px,
-     buluta 16 px mesafe. Genişlik görselin %36'sı (oran 622:125.4).
+  /* Logo, home_page4.png'nin (941x1672) SOL üstünde — Bag Merge'deki
+     yerleşimin aynısı (kullanıcı isteği: iki oyunda aynı dursun):
+     soldan %3.5, üstten %2.2, genişlik %36.
+     Bu kutu ölçüldü, görsel pikseliyle x 33-372, y 37-105: tamamı düz
+     mavi gökyüzü (tek bir bulut ya da bina pikseli yok; soldaki bina
+     x=28'de bitiyor, bulutlar y=135'ten sonra başlıyor). Başlık y=220'de
+     başladığı için araya 115 px mesafe var.
+     Bir ara sağ üstteydi; orada x≥846, y≥77'de bulut var ve logonun beyaz
+     yazısı okunmuyordu, bu yüzden sağ kenar x=830'a çekilmişti.
      Görsel ekranda 'contain' ile çizildiği için konum, görselin ekranda
      GERÇEKTE çizildiği kutudan hesaplanıyor (img elemanı ekranı kaplıyor). */
   const logo = $('#homeLogo');
   if(logo){
     logo.src = assetURL('assets/logo_8524edad42.svg');
-    const LOGO = { gW:941, sag:830, ust:33, gen:339 };   // görsel pikseli
+    // sol ve genişlik görselin GENİŞLİĞİNE, üst YÜKSEKLİĞİNE oranlı (Bag Merge ile aynı)
+    const LOGO = { sol:0.035, ust:0.022, gen:0.36 };
     const logoYerlestir = () => {
       if(!a || !a.naturalWidth) return;
       const k = a.getBoundingClientRect();
@@ -2573,10 +2576,9 @@ resize();
       let gw = k.width, gh = k.height;
       if(gw/gh > oran) gw = gh*oran; else gh = gw/oran;
       const gx = (k.width - gw)/2, gy = (k.height - gh)/2;
-      const s = gw / LOGO.gW;
-      logo.style.width = (LOGO.gen*s) + 'px';
-      logo.style.left  = (gx + (LOGO.sag - LOGO.gen)*s) + 'px';
-      logo.style.top   = (gy + LOGO.ust*s) + 'px';
+      logo.style.width = (gw*LOGO.gen) + 'px';
+      logo.style.left  = (gx + gw*LOGO.sol) + 'px';
+      logo.style.top   = (gy + gh*LOGO.ust) + 'px';   // CSS'te üst yüzdesi YÜKSEKLİĞE göre (Bag Merge de öyle)
     };
     a.addEventListener('load', logoYerlestir);
     window.addEventListener('resize', logoYerlestir);

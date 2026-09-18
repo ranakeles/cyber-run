@@ -2005,11 +2005,11 @@ function missQuestion(){
   /* Kaçırmanın kendi kartı var ("SORU KAÇIRILDI!"), o yüzden metne ayrıca
      "kaçırdın" yazmaya gerek yok — başlık zaten görselde. */
   cevapKartiKur('kacti');
-  $('#fWhy').textContent =
-    (m.safe ? 'Bu mesaj güvenliydi. ' : 'Bu mesaj şüpheliydi. ') + m.why;
+  /* Açıklama yazılmıyor: kaçırılan soruda çocuk mesajı hiç görmedi,
+     "şu yüzden şüpheliydi" demek anlamsız kalıyordu (kullanıcı isteği).
+     Kartta yalnızca puan var. */
   $('#fPts').textContent = PTS_MISS + ' puan';
   $('#fPts').style.color = '#b45309';   // kaçırma kartı turuncu tonlarda
-  aciklamaSigdir();
   f.classList.add('show');
   setTimeout(()=>{ f.classList.remove('show'); sonrakiAdim(); }, 1700);
 }
@@ -2144,14 +2144,16 @@ const CEVAP_YERI = {
             kart:{x:778, y:113, w:720,  h:760},
             aciklama:{x:842, y:518, w:589, h:145},
             puan:{x:954, y:708, w:365, h:79} },
-  /* Kaçırıldı kartı ENİNE bir tasarım; diğerleriyle aynı genişlikte
-     çizilince yüksekliği düşük kalıyor ve gözle daha küçük görünüyor
-     (alanı diğerlerinin ~%72'si). Eşit görünsün diye biraz büyütülüyor —
-     ölçek, iki kartın kapladığı ALAN eşitlensin diye hesaplandı. */
-  kacti:  { src:'assets/missed_question.png', W:1536, H:1024, olcek:1.178,
-            kart:{x:143, y:30,  w:1249, h:932},
-            aciklama:{x:314, y:582, w:899, h:161},
-            puan:{x:490, y:786, w:535, h:75} }
+  /* Kaçırıldı kartında AÇIKLAMA YOK: çocuk soruyu zaten görmedi, okuyacak
+     bir "neden" de yok (kullanıcı isteği). Görselde de açıklama kutusu
+     çizili değil — bu yüzden kart diğerlerinden alçak, içinde yalnızca
+     puan şeridi var. Kutular missed_question2.png'den ÖLÇÜLDÜ.
+     olcek: kart diğerleriyle aynı GENİŞLİKTE çizilsin diye eski değerde
+     bırakıldı; kart artık kısa olduğu için ekranda daha az yer kaplıyor,
+     tasarım gereği böyle. */
+  kacti:  { src:'assets/missed_question2.png', W:1536, H:1024, olcek:1.178, yaziOlcek:1.27,
+            kart:{x:75, y:42, w:1385, h:812},
+            puan:{x:482, y:624, w:570, h:74} }
 };
 function cevapKartiKur(tur){
   const y = CEVAP_YERI[tur] || CEVAP_YERI.yanlis;
@@ -2165,7 +2167,10 @@ function cevapKartiKur(tur){
   const enFazla = window.innerHeight * 0.6;      // uzun kartlar ekrana sığsın
   if(h > enFazla){ h = enFazla; w = h*k.w/k.h; }
   kart.style.width = w+'px'; kart.style.height = h+'px';
-  kart.style.fontSize = (h*0.045)+'px';
+  /* Yazı boyu kartın YÜKSEKLİĞİNE bağlı. Kaçırıldı kartı açıklama kutusu
+     olmadığı için alçak kaldı ve puan yazısı diğer kartlardakinden küçük
+     çıkıyordu; o kart yaziOlcek ile bunu telafi ediyor. */
+  kart.style.fontSize = (h*0.045*(y.yaziOlcek || 1))+'px';
   // Görselin yalnızca bu kartı gösterilsin (ölçekle + kaydır)
   const s = w/k.w;
   kart.style.backgroundImage    = 'url(' + assetURL(G.src) + ')';
@@ -2178,12 +2183,15 @@ function cevapKartiKur(tur){
     el.style.width  = (100*r.w/k.w) + '%';
     el.style.height = (100*r.h/k.h) + '%';
   };
-  yerlestir($('#fWhy'), y.aciklama);
+  // Açıklama kutusu olmayan kart (kaçırıldı) için yazıyı tamamen gizle
+  const why = $('#fWhy');
+  if(y.aciklama){ why.style.display=''; yerlestir(why, y.aciklama); }
+  else { why.style.display='none'; why.textContent=''; }
   yerlestir($('#fPts'), y.puan);
 }
 /* Açıklama kutusu dar: uzun metinlerde sığana kadar küçült */
 function aciklamaSigdir(){
-  const el = $('#fWhy'); if(!el) return;
+  const el = $('#fWhy'); if(!el || el.style.display === 'none') return;
   el.style.fontSize = '';
   let boy = 1;
   for(let i=0; i<16 && el.scrollHeight > el.clientHeight+1; i++){

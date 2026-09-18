@@ -43,7 +43,7 @@ MAP = {
     "assets/bg_far.png": ("bg_far.jpg", "image/jpeg", TAM),
     "assets/ground_tile.png": ("ground_tile.jpg", "image/jpeg", TAM),
     "assets/home_page4.png": ("home_page4.jpg", "image/jpeg", TAM),   # başlangıç, iki karakter (9:16)
-    "assets/missed_question.png": ("missed_question.png", "image/png", TAM),   # kaçırılan soru kartı
+    "assets/missed_question2.png": ("missed_question2.png", "image/png", TAM),   # kaçırılan soru kartı (açıklamasız)
     "assets/answers.png": ("answers.png", "image/png", TAM),   # doğru/yanlış kartları
     "assets/mail_body.png": ("mail_body.png", "image/png", TAM),   # e-posta kartı (eksiz)
     "assets/mail_file.png": ("mail_file.png", "image/png", TAM),   # e-posta kartı (dosya ekli)

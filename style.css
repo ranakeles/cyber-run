@@ -221,6 +221,14 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 .lb-satir.ben{ color:#c2410c; }
 .lb-satir.ben .rk{ color:#c2410c; }
 /* Görseldeki butonların üstündeki görünmez dokunma alanları */
+/* Logo: sol üst köşedeki boş gökyüzü. end_page_boy / end_page_girl2
+   (941x1672) içinde kutu x 33-296, y 37-90 — ölçüldü: bölgenin yalnızca
+   %8'i bulut, ortalama renk rgb(28,137,249) düz mavi, yani beyaz yazı
+   okunuyor. Başlık y=90'da ve x=465'ten sonra başlıyor, çakışma yok.
+   Başlangıç ekranındaki logo %36; burada başlığa yer kalsın diye %28. */
+.end-logo{ position:absolute; left:3.5%; top:2.2%; width:28%; height:auto;
+  pointer-events:none; }
+
 .end-hit{ position:absolute; background:none; border:none; padding:0; cursor:pointer;
   -webkit-tap-highlight-color:transparent; border-radius:99px; }
 /* Butonlar yan yana (end_page_boy / end_page_girl2'den ölçüldü) */

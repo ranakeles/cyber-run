@@ -2575,6 +2575,9 @@ resize();
      yazısı okunmuyordu, bu yüzden sağ kenar x=830'a çekilmişti.
      Görsel ekranda 'contain' ile çizildiği için konum, görselin ekranda
      GERÇEKTE çizildiği kutudan hesaplanıyor (img elemanı ekranı kaplıyor). */
+  // Bitiş ekranının logosu: kutusu CSS'te (.end-logo), iki karakterde de aynı
+  const sonLogo = $('#endLogo');
+  if(sonLogo) sonLogo.src = assetURL('assets/logo_8524edad42.svg');
   const logo = $('#homeLogo');
   if(logo){
     logo.src = assetURL('assets/logo_8524edad42.svg');

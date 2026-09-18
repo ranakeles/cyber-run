@@ -23,6 +23,11 @@ const START_LIVES = 3, MAX_LIVES = 3;
 /* Can yanlış cevapta VE soruyu kaçırınca gider. Engele çarpmak sadece puan
    götürür — koşu becerisi yüzünden ölmek oyunun mesajını gölgeler. */
 const PTS_CORRECT = 100, PTS_WRONG = -40, PTS_MISS = -20, STREAK_BONUS = 20;
+/* Doğru / yanlış / kaçırıldı kartının ekranda kalma süresi (ms).
+   1700 idi; kart 0.22 sn'de açılıp 0.22 sn'de kapandığı için çocuğa okumak
+   için ~1.5 sn kalıyordu ve açıklamalar (40-85 karakter) yetişmiyordu.
+   Kullanıcı isteğiyle 3000'e çıkarıldı. Üç kart da aynı süreyi kullanır. */
+const KART_SURE = 3000;
 
 /* SORU HAVUZU — çocuklar için (100 soru: 50 güvenli, 50 şüpheli).
    safe:true => güvenli. why => cevap kartındaki açıklama.
@@ -2011,7 +2016,7 @@ function missQuestion(){
   $('#fPts').style.color = '#b45309';   // kaçırma kartı turuncu tonlarda
   aciklamaSigdir();
   f.classList.add('show');
-  setTimeout(()=>{ f.classList.remove('show'); sonrakiAdim(); }, 1700);
+  setTimeout(()=>{ f.classList.remove('show'); sonrakiAdim(); }, KART_SURE);
 }
 
 /* Geri bildirimden sonra: can bittiyse oyun biter, bitmediyse devam. */
@@ -2219,7 +2224,7 @@ function flash(ok, m, delta){
   $('#fPts').style.color = delta>=0 ? '#1f7a34' : '#b3261e';
   aciklamaSigdir();
   f.classList.add('show');
-  setTimeout(()=>{ f.classList.remove('show'); sonrakiAdim(); }, 1700);
+  setTimeout(()=>{ f.classList.remove('show'); sonrakiAdim(); }, KART_SURE);
 }
 
 /* ---------- İSİM GİRİŞİ ----------

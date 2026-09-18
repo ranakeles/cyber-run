@@ -29,7 +29,7 @@ const PTS_CORRECT = 100, PTS_WRONG = -40, PTS_MISS = -20, STREAK_BONUS = 20;
    Kullanıcı isteğiyle 3000'e çıkarıldı. Üç kart da aynı süreyi kullanır. */
 const KART_SURE = 3000;
 
-/* SORU HAVUZU — çocuklar için (100 soru: 50 güvenli, 50 şüpheli).
+/* SORU HAVUZU — çocuklar için (106 soru: 52 güvenli, 54 şüpheli).
    safe:true => güvenli. why => cevap kartındaki açıklama.
    İsteğe bağlı: attach => ekli dosya adı (ekli kart açılır),
                  link   => mesajın altındaki bağlantı yazısı.
@@ -49,6 +49,9 @@ const POOL = [
   {from:"Annem", subj:"Akşam Yemeği",
    text:"Okuldan sonra eve gel, akşam pizza yapıyoruz!", safe:true,
    why:"Annenden gelen normal bir mesaj."},
+  {from:"Annem", subj:"Eve Dönerken",
+   text:"Okuldan çıkınca bana konumunu at, yolda karşılarım.", safe:true,
+   why:"Annenden gelen, mantıklı ve anlaşılır bir istek."},
   {from:"Dedem", subj:"İyi ki Doğdun!",
    text:"Doğum günün kutlu olsun! Hafta sonu pasta keseceğiz.", safe:true,
    why:"Sevgi dolu bir mesaj, hiçbir şey istemiyor."},
@@ -98,6 +101,9 @@ const POOL = [
    text:"Cuma sınıfımızı süsleyeceğiz, renkli kâğıt getir.", safe:true,
    why:"Sınıf arkadaşından bilgi mesajı."},
   // orta
+  {from:"Bilim Merkezi", subj:"Gezi Biletin",
+   text:"Yarınki gezi için biletin ekte, QR kodunu girişte okutman yeterli.", attach:"bilet.pdf", safe:true,
+   why:"Beklediğin bir bilet, ekstra bilgi istemiyor."},
   {from:"Öğretmenim", subj:"Bu Haftanın Ödevleri",
    text:"Bu haftanın ödevleri ekte. Kolay gelsin!", attach:"odevler.pdf", safe:true,
    why:"Öğretmeninden beklediğin bir ödev dosyası."},
@@ -172,7 +178,7 @@ const POOL = [
    text:"Hesabına yeni bir telefondan girildi. Bu sen değilsen bir büyüğüne haber ver.", safe:true,
    why:"Seni bir bağlantıya göndermiyor, bir büyüğüne haber vermeni söylüyor."},
   {from:"Hesap Bildirimi", subj:"Şifren Değişti",
-   text:"Şifren değiştirildi. Bunu sen yaptıysan bir şey yapmana gerek yok.", safe:true,
+   text:"Şifren değiştirildi. Bunu sen yaptıysan bir şey yapmana gerek yok. Yapmadıysan hemen bir büyüğüne söyle.", safe:true,
    why:"Korkutucu görünüyor ama bağlantı ya da bilgi istemiyor."},
   {from:"Tabletim", subj:"Kamera İzni",
    text:"Bu uygulama kameranı kullanmak istiyor. Bir büyüğüne sormadan izin verme.", safe:true,
@@ -204,7 +210,7 @@ const POOL = [
   {from:"Tanımadığın Biri", subj:"Merhaba!",
    text:"Merhaba! Ev adresini ve telefonunu yazar mısın?", safe:false,
    why:"Tanımadığın birine adresini ve telefonunu verme."},
-  {from:"Arkadaşın", subj:"Bir Şey Soracağım",
+  {from:"Arkadaşın Ege", subj:"Bir Şey Soracağım",
    text:"Şifreni bana söyler misin?", safe:false,
    why:"Şifreni en yakın arkadaşınla bile paylaşma."},
   {from:"Çekiliş", subj:"Tablet Kazandın!",
@@ -247,6 +253,9 @@ const POOL = [
    text:"Sınırsız bedava internet için tıkla, bilgilerini yaz.", link:"Buraya tıkla", safe:false,
    why:"Bedava vaatleri bilgilerini çalmak içindir."},
   // orta
+  {from:"Oyun Arkadaşı", subj:"Oyun Şifresi",
+   text:"Oyundaki şifreni bana söylersen sana bedava eşya vereceğim, kimseye söylemem.", safe:false,
+   why:"Oyun arkadaşın bile olsa şifreni asla kimseyle paylaşma; hesabını çalabilir."},
   {from:"Oyun Hilesi", subj:"Oyunda Hep Kazan!",
    text:"Bu dosyayı aç, oyunda hep kazan!", attach:"hile.exe", safe:false,
    why:"Hile dosyaları bilgisayara virüs bulaştırabilir."},
@@ -268,7 +277,7 @@ const POOL = [
   {from:"Komik Videolar", subj:"Çok Komik Video!",
    text:"Bu videoyu izlemek için annenin telefon numarasını yaz.", link:"Videoyu izle", safe:false,
    why:"Video izlemek için kimsenin telefon numarası gerekmez."},
-  {from:"Bilinmeyen Kişi", subj:"Çok Komik!",
+  {from:"Tanımadığın Biri", subj:"Çok Komik!",
    text:"Sınıf arkadaşının komik fotoğrafı, herkese gönder!", safe:false,
    why:"Başkasının fotoğrafını izinsiz yaymak onu üzer."},
   {from:"Oyun Destek", subj:"Hesap Doğrulama",
@@ -295,7 +304,7 @@ const POOL = [
   {from:"Oyun Arkadaşı", subj:"Özel Sohbet",
    text:"Özel sohbete geç, burada kimse bizi görmesin.", safe:false,
    why:"Gizli konuşmak isteyen yabancıya dikkat et."},
-  {from:"Doğum Günü", subj:"Hediyen Var!",
+  {from:"Doğum Günü Sürprizi", subj:"Hediyen Var!",
    text:"Doğum günün kutlu olsun! Hediyeni açmak için dosyaya tıkla.", attach:"hediye.exe", safe:false,
    why:"Bu dosya bir program, virüs olabilir."},
   {from:"Hızlı İnternet", subj:"İnternetini Hızlandıralım",
@@ -314,6 +323,15 @@ const POOL = [
    text:"Bu oyunu ailene gösterme, sadece çocuklar oynayabilir.", link:"Oyunu aç", safe:false,
    why:"Ailenden saklamanı isteyen şey tehlikelidir."},
   // zor
+  {from:"Abin (bilinmeyen numara)", subj:"Neredesin?",
+   text:"Merhaba ben abin. Canlı konumunu gönder, ben de oraya geleyim.", safe:false,
+   why:"Ailenden biri gibi görünse de bilmediğin bir numaradan konum bilgisi istemek risklidir; önce ailenden birine sor."},
+  {from:"Annem (bilinmeyen numara)", subj:"Acil, Sesimi Dinle",
+   text:"Sana az önce sesli mesaj gönderdim. Telefonum bozuk olduğu için sesim garip çıkabilir, hemen bildiğin hesaba para gönderir misin?", safe:false,
+   why:"Ses tanıdık gelse bile böyle acil para isteklerinde büyüğüne yüz yüze sor."},
+  {from:"Kütüphane", subj:"Üyelik Yenileme",
+   text:"Üyeliğini yenilemek için bu QR kodu okut, açılan sayfaya adını ve okulunu yaz.", link:"QR kodu okut", safe:false,
+   why:"Tanıdık bir yer gibi görünse de bağlantı seni sahte bir sayfaya götürebilir."},
   {from:"Okul Duyuru", subj:"Notların Açıklandı",
    text:"Karne notlarını görmek için okul şifreni bu bağlantıya yaz.", link:"Notlarını gör", safe:false,
    why:"Okulun şifreni bir bağlantıdan istemez."},
@@ -2223,8 +2241,10 @@ const seriYazisi = n => n + "'" + seriEki(n) + ' seri!';
 function flash(ok, m, delta){
   const f = $('#flash');
   cevapKartiKur(ok ? 'dogru' : 'yanlis');
-  const truth = m.safe ? 'Bu mesaj GÜVENLİ idi. ' : 'Bu mesaj ŞÜPHELİ idi. ';
-  $('#fWhy').textContent = (ok?'':truth) + m.why;
+  /* Yanlış cevapta bir ara başa "Bu mesaj ŞÜPHELİ idi." ekleniyordu;
+     kaldırıldı (kullanıcı isteği): kartın başlığı zaten DOĞRU/YANLIŞ
+     diyor, cümle açıklamayı uzatıp yazıyı küçültüyordu. */
+  $('#fWhy').textContent = m.why;
   // Can satırı sadece yanlış cevapta yazılır — can başka türlü değişmiyor
   const canYazi = ok ? '' : '  •  −1 can';
   $('#fPts').textContent = (delta>=0?'+':'')+delta+' puan' + canYazi

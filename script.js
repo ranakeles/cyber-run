@@ -13,15 +13,15 @@
    ========================================================= */
 
 /* ---------- 1) AYARLAR + SORU HAVUZU ---------- */
-/* Oyun SORU SAYISIYLA değil CANLA biter: oyuncu 3 canla başlar, doğru cevap
-   can kazandırır, yanlış ve kaçırılan soru can götürür. Sorular bitmez —
-   havuz tükenince yeniden karılır (bkz. sonrakiSoru).                     */
-/* CAN GERİ GELMEZ. 3 canla başlanır, kazanma yolu yoktur — oyun ilerledikçe
-   sadece azalır. (Bir ara "3 doğru üst üste = +1 can" vardı; oyunun bitmesini
-   imkânsızlaştırdığı için kaldırıldı.) */
+/* Oyun SORU SAYISIYLA değil CANLA biter: 3 canla başlanır, CAN YALNIZCA
+   ENGELE ÇARPINCA gider (Eylül 2026'da değişti — kullanıcı isteği).
+   Önce yanlış cevap can götürüyordu; üç yanlış cevabı beklemek oyunu çok
+   uzatıyordu, çünkü sorular ancak zarf yakalanınca geliyor. Artık koşu
+   becerisi oyunu bitiriyor, sorular puanı belirliyor.
+   CAN GERİ GELMEZ; kazanma yolu yok. Sorular bitmez — havuz tükenince
+   yeniden karılır (bkz. sonrakiSoru).                                     */
 const START_LIVES = 3, MAX_LIVES = 3;
-/* Can yanlış cevapta VE soruyu kaçırınca gider. Engele çarpmak sadece puan
-   götürür — koşu becerisi yüzünden ölmek oyunun mesajını gölgeler. */
+/* Yanlış cevap ve kaçırılan soru yalnızca PUAN götürür, can götürmez. */
 const PTS_CORRECT = 100, PTS_WRONG = -40, PTS_MISS = -20, STREAK_BONUS = 20;
 /* Doğru / yanlış / kaçırıldı kartının ekranda kalma süresi (ms).
    1700 idi; kart 0.22 sn'de açılıp 0.22 sn'de kapandığı için çocuğa okumak
@@ -1733,9 +1733,12 @@ function hitObstacle(){
   if(hitCool > 0) return;
   hitCool = 1.1; shake = 1;
   sesCal('carpma');
-  // Engele çarpmak SADECE puan götürür, can götürmez: canlar soru kararlarına ait
-  score = Math.max(0, score - OBS_PENALTY);
-  updateHud();
+  /* Çarpmak BİR CAN götürür (üç çarpma = oyun biter). Ayrıca puan cezası
+     YOK: tek çarpmada hem can hem puan gitmesi fazla sert oluyordu. Puan
+     cezası geri istenirse OBS_PENALTY hazır duruyor. */
+  lives--;
+  updateHud(-1);
+  if(lives <= 0) endGame();
 }
 
 function drawOneObstacle(o){
@@ -2008,18 +2011,13 @@ function nextFlight(){
   $('#questionScreen').classList.add('hidden');
 }
 
-/* Kaçırılan soru SADECE puan götürür, can götürmez.
-   Bir ara can da götürüyordu; kaldırıldı çünkü koşu becerisi yüzünden
-   ölmek oyunun asıl mesajını (e-postayı doğru okumak) gölgeliyordu —
-   engel çarpmasında da aynı gerekçeyle can gitmiyor.
-   DİKKAT: bu değişiklikten sonra can YALNIZCA yanlış cevapta gidiyor.   */
+/* Kaçırılan soru SADECE puan götürür. Can yalnızca ENGELE ÇARPINCA
+   gidiyor (bkz. hitObstacle); cevapla ilgili hiçbir şey can götürmez.  */
 function missQuestion(){
   const m = aktifSoru;
   total++;                       // doğruluk oranına yansısın
   streak = 0;
-  /* Kaçırmak CAN GÖTÜRMÜYOR, sadece puan. Kaçırmak bir refleks hatası;
-     oyunun öğretmek istediği şey e-postayı doğru okumak, zarfı yakalamak
-     değil. Can yalnızca YANLIŞ CEVAPTA gidiyor.                          */
+  /* Kaçırmak CAN GÖTÜRMÜYOR, sadece puan. */
   score = Math.max(0, score + PTS_MISS);
   sesCal('kacti');
   updateHud();
@@ -2134,7 +2132,7 @@ function decide(decision){
     sesCal('dogru');
     if(streak>=3) sesCal('seri', 0.25);      // doğru sesinin hemen ardından
   } else {
-    streak = 0; delta = PTS_WRONG; lives--;
+    streak = 0; delta = PTS_WRONG;     // yanlış cevap CAN GÖTÜRMEZ, sadece puan
     sesCal('yanlis');
   }
   score = Math.max(0, score+delta);
@@ -2245,9 +2243,8 @@ function flash(ok, m, delta){
      kaldırıldı (kullanıcı isteği): kartın başlığı zaten DOĞRU/YANLIŞ
      diyor, cümle açıklamayı uzatıp yazıyı küçültüyordu. */
   $('#fWhy').textContent = m.why;
-  // Can satırı sadece yanlış cevapta yazılır — can başka türlü değişmiyor
-  const canYazi = ok ? '' : '  •  −1 can';
-  $('#fPts').textContent = (delta>=0?'+':'')+delta+' puan' + canYazi
+  /* Can satırı yok: can yalnızca engele çarpınca gidiyor, cevapta değil. */
+  $('#fPts').textContent = (delta>=0?'+':'')+delta+' puan'
                          + (ok&&streak>=3 ? '  •  '+seriYazisi(streak)+' 🔥' : '');
   $('#fPts').style.color = delta>=0 ? '#1f7a34' : '#b3261e';
   aciklamaSigdir();

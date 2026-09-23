@@ -75,7 +75,7 @@ MAP = {
     "assets/life.png": ("life.png", "image/png", 900),   # dolu kalp şeridi
     "assets/life2.png": ("life2.png", "image/png", 900),   # boş kalp şeridi
     "assets/skor_tablosu.png": ("skor_tablosu.png", "image/png", 900),   # puan sayacı çerçevesi
-    "assets/score_numbers.png": ("score_numbers.png", "image/png", TAM),   # 0-9 rakam şeridi (3-2-1 sayımında ekran boyunun %20si)
+    "assets/numbers.png": ("numbers.png", "image/png", TAM),   # 0-9 ve eksi şeridi (3-2-1 sayımında ekran boyunun %20si)
     "assets/ucak_thy.png": ("ucak_thy.png", "image/png", 900),
     "assets/ucak_ajet.png": ("ucak_ajet.png", "image/png", 900),
     "assets/ucak_sunexpress.png": ("ucak_sunexpress.png", "image/png", 900),

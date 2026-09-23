@@ -1779,10 +1779,10 @@ function drawWorldObjects(){
    Yollar burada düz metin olarak geçmeli — paketleyici tek dosya sürümünde
    bu metinleri gömülü görselle değiştiriyor.                              */
 const CAN_DOLU_SRC = 'assets/life.png', CAN_BOS_SRC = 'assets/life2.png';
-const PUAN_CERCEVE_SRC = 'assets/skor_tablosu.png', PUAN_RAKAM_SRC = 'assets/score_numbers.png';
+const PUAN_CERCEVE_SRC = 'assets/skor_tablosu.png', PUAN_RAKAM_SRC = 'assets/numbers.png';
 
 /* ---- Puan rakamları kullanıcının görselinden kesilir ----
-   score_numbers.png: iki satır (üstte 0-4, altta 5-9). Rakamlar EŞİT
+   numbers.png: iki satır (üstte 0-4, altta 5-9 ve eksi). Rakamlar EŞİT
    aralıklı ve eşit genişlikte DEĞİL (elle çizilmiş gibi), o yüzden yerleri
    tahmin edilmiyor, alfa kanalı taranarak ölçülüyor. Dikey hizada her
    rakam kendi kutusunu değil SATIRININ kutusunu kullanır — yoksa "1" ile
@@ -1817,9 +1817,12 @@ function rakamlariOlc(img){
       }
     }
   }
-  if(kutular.length !== 10) return null;     // beklenen düzen değil → yazıya düş
+  /* numbers.png: üst satır 0-4, alt satır 5-9 ve EKSİ (11 kutu).
+     Eski score_numbers.png'de eksi yoktu (10 kutu) ve eksi yazıyla
+     çiziliyordu; artık o dal yok. Görsel değişirse sayı da değişir. */
+  if(kutular.length !== 11) return null;     // beklenen düzen değil → yazıya düş
   const tablo = {};
-  '0123456789'.split('').forEach((ch, i) => tablo[ch] = kutular[i]);
+  '0123456789-'.split('').forEach((ch, i) => tablo[ch] = kutular[i]);
   return tablo;
 }
 /* Rakam görseli yüklenince puanı yeniden diz (o ana kadar düz yazı görünür) */
@@ -1859,28 +1862,9 @@ function rakamlariDiz(kutu, sayi, yukseklik){
   kutu.textContent = '';
   const alan = kutu.clientWidth || 1e5;
   let toplam = 0;
-  /* score_numbers.png'de EKSİ İŞARETİ YOK (sadece 0-9). Puan eksiye
-     düşebildiği için eksi geçici olarak yazıyla çiziliyor; rengi ve boyu
-     rakamlara uyacak şekilde verildi (kontur mavisi görselden ölçüldü:
-     rgb 13,77,193). Görsele eksi eklenirse buradaki dal silinip normal
-     rakam kutusu kullanılabilir. */
-  const EKSI_ORAN = 0.62;                       // eksinin genişliği / rakam yüksekliği
-  for(const ch of yazi){
-    if(ch === '-'){ toplam += yukseklik*EKSI_ORAN + 1; continue; }
-    const k = RAKAM_KUTU[ch]; if(k) toplam += yukseklik*k.w/k.h + 1;
-  }
+  for(const ch of yazi){ const k = RAKAM_KUTU[ch]; if(k) toplam += yukseklik*k.w/k.h + 1; }
   const h = toplam > alan ? yukseklik * (alan/toplam) : yukseklik;
   for(const ch of yazi){
-    if(ch === '-'){
-      const el = document.createElement('i');
-      el.className = 'rakam-eksi';
-      el.textContent = '–';
-      el.style.width = (h*EKSI_ORAN) + 'px';
-      el.style.height = h + 'px';
-      el.style.fontSize = (h*1.15) + 'px';
-      kutu.appendChild(el);
-      continue;
-    }
     const k = RAKAM_KUTU[ch]; if(!k) continue;
     const s = h / k.h;                                 // görselden ekrana ölçek
     const el = document.createElement('i');

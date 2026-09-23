@@ -2633,6 +2633,7 @@ function pdPaneliKur(){
   /* Panel açıkken saniyede bir tazeleniyor; kapalıyken gereksiz çalışmasın. */
   setInterval(() => { if(!$('#pdPanel').classList.contains('gizli')) pdDurumunuGuncelle(); }, 1000);
 }
+pdPaneliKur();
 
 
 /* ---- Açılış: başlangıç ekranının ARKASINDA sahne canlı aksın (attract mod) ---- */

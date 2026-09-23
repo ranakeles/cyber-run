@@ -89,6 +89,12 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
   filter:drop-shadow(0 3px 7px rgba(0,0,0,.4)); }
 .score-digits{ position:absolute; left:31%; right:20%; top:31.8%; bottom:28.2%; }
 /* Rakam görselinden dizilen sayı (hem HUD'da hem bitiş kurdelesinde) */
+/* Eksi işareti: rakam şeridinde (score_numbers.png) yok, yazıyla çiziliyor.
+   Renk rakamların konturundan ölçüldü. Görsele eksi eklenince bu kural
+   ve script'teki dal kaldırılabilir. */
+.rakam-eksi{ display:inline-flex; align-items:center; justify-content:center;
+  font-family:var(--hud); font-weight:800; color:#0d4dc1; line-height:1;
+  text-shadow:0 2px 0 rgba(0,0,0,.18); }
 .rakam-dizi{ display:flex; align-items:center; justify-content:center; gap:1px; }
 .rakam-dizi i{ display:block; background-repeat:no-repeat; }
 

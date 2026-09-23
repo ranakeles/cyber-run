@@ -1859,9 +1859,28 @@ function rakamlariDiz(kutu, sayi, yukseklik){
   kutu.textContent = '';
   const alan = kutu.clientWidth || 1e5;
   let toplam = 0;
-  for(const ch of yazi){ const k = RAKAM_KUTU[ch]; if(k) toplam += yukseklik*k.w/k.h + 1; }
+  /* score_numbers.png'de EKSİ İŞARETİ YOK (sadece 0-9). Puan eksiye
+     düşebildiği için eksi geçici olarak yazıyla çiziliyor; rengi ve boyu
+     rakamlara uyacak şekilde verildi (kontur mavisi görselden ölçüldü:
+     rgb 13,77,193). Görsele eksi eklenirse buradaki dal silinip normal
+     rakam kutusu kullanılabilir. */
+  const EKSI_ORAN = 0.62;                       // eksinin genişliği / rakam yüksekliği
+  for(const ch of yazi){
+    if(ch === '-'){ toplam += yukseklik*EKSI_ORAN + 1; continue; }
+    const k = RAKAM_KUTU[ch]; if(k) toplam += yukseklik*k.w/k.h + 1;
+  }
   const h = toplam > alan ? yukseklik * (alan/toplam) : yukseklik;
   for(const ch of yazi){
+    if(ch === '-'){
+      const el = document.createElement('i');
+      el.className = 'rakam-eksi';
+      el.textContent = '–';
+      el.style.width = (h*EKSI_ORAN) + 'px';
+      el.style.height = h + 'px';
+      el.style.fontSize = (h*1.15) + 'px';
+      kutu.appendChild(el);
+      continue;
+    }
     const k = RAKAM_KUTU[ch]; if(!k) continue;
     const s = h / k.h;                                 // görselden ekrana ölçek
     const el = document.createElement('i');
@@ -2018,7 +2037,7 @@ function missQuestion(){
   total++;                       // doğruluk oranına yansısın
   streak = 0;
   /* Kaçırmak CAN GÖTÜRMÜYOR, sadece puan. */
-  score = Math.max(0, score + PTS_MISS);
+  score += PTS_MISS;                 // puan eksiye düşebilir
   sesCal('kacti');
   updateHud();
   state = 'feedback';
@@ -2135,7 +2154,10 @@ function decide(decision){
     streak = 0; delta = PTS_WRONG;     // yanlış cevap CAN GÖTÜRMEZ, sadece puan
     sesCal('yanlis');
   }
-  score = Math.max(0, score+delta);
+  /* Puan EKSİYE DÜŞEBİLİR (kullanıcı isteği). Önce 0'da durduruluyordu;
+     kart "-40 puan" yazarken sayaç 0'da kalıyor ve ceza yokmuş gibi
+     görünüyordu. */
+  score += delta;
   updateHud(isCorrect ? 0 : -1);
   $('#questionScreen').classList.add('hidden');
   flash(isCorrect, m, delta);

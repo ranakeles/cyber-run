@@ -1786,10 +1786,10 @@ function drawWorldObjects(){
    Yollar burada düz metin olarak geçmeli — paketleyici tek dosya sürümünde
    bu metinleri gömülü görselle değiştiriyor.                              */
 const CAN_DOLU_SRC = 'assets/life.png', CAN_BOS_SRC = 'assets/life2.png';
-const PUAN_CERCEVE_SRC = 'assets/skor_tablosu.png', PUAN_RAKAM_SRC = 'assets/score_numbers.png';
+const PUAN_CERCEVE_SRC = 'assets/skor_tablosu.png', PUAN_RAKAM_SRC = 'assets/numbers.png';
 
 /* ---- Puan rakamları kullanıcının görselinden kesilir ----
-   score_numbers.png: iki satır (üstte 0-4, altta 5-9). Rakamlar EŞİT
+   numbers.png: iki satır (üstte 0-4, altta 5-9 ve eksi). Rakamlar EŞİT
    aralıklı ve eşit genişlikte DEĞİL (elle çizilmiş gibi), o yüzden yerleri
    tahmin edilmiyor, alfa kanalı taranarak ölçülüyor. Dikey hizada her
    rakam kendi kutusunu değil SATIRININ kutusunu kullanır — yoksa "1" ile
@@ -1824,9 +1824,12 @@ function rakamlariOlc(img){
       }
     }
   }
-  if(kutular.length !== 10) return null;     // beklenen düzen değil → yazıya düş
+  /* numbers.png: üst satır 0-4, alt satır 5-9 ve EKSİ (11 kutu).
+     Eski score_numbers.png'de eksi yoktu (10 kutu) ve eksi yazıyla
+     çiziliyordu; artık o dal yok. Görsel değişirse sayı da değişir. */
+  if(kutular.length !== 11) return null;     // beklenen düzen değil → yazıya düş
   const tablo = {};
-  '0123456789'.split('').forEach((ch, i) => tablo[ch] = kutular[i]);
+  '0123456789-'.split('').forEach((ch, i) => tablo[ch] = kutular[i]);
   return tablo;
 }
 /* Rakam görseli yüklenince puanı yeniden diz (o ana kadar düz yazı görünür) */
@@ -2027,7 +2030,7 @@ function missQuestion(){
   total++;                       // doğruluk oranına yansısın
   streak = 0;
   /* Kaçırmak CAN GÖTÜRMÜYOR, sadece puan. */
-  score = Math.max(0, score + PTS_MISS);
+  score += PTS_MISS;                 // puan eksiye düşebilir
   sesCal('kacti');
   updateHud();
   state = 'feedback';
@@ -2144,7 +2147,10 @@ function decide(decision){
     streak = 0; delta = PTS_WRONG;     // yanlış cevap CAN GÖTÜRMEZ, sadece puan
     sesCal('yanlis');
   }
-  score = Math.max(0, score+delta);
+  /* Puan EKSİYE DÜŞEBİLİR (kullanıcı isteği). Önce 0'da durduruluyordu;
+     kart "-40 puan" yazarken sayaç 0'da kalıyor ve ceza yokmuş gibi
+     görünüyordu. */
+  score += delta;
   updateHud(isCorrect ? 0 : -1);
   $('#questionScreen').classList.add('hidden');
   flash(isCorrect, m, delta);

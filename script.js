@@ -440,27 +440,28 @@ const FLOW_SPEED = 1.6 * 1.15;
    Tek bir `zorluk` değeri (0 → 1) her şeyi sürüklüyor: hız, engel sıklığı
    ve çift engel ihtimali. Böylece zorluğu ayarlamak için tek yere bakılır.
 
-   Neden bu kadar sert: önceki ayar 35 saniyede %75'te tavan yapıyordu ve
-   oyuncu hızlanmayı HİÇ hissetmiyordu. Artık 95 saniye boyunca kesintisiz
-   tırmanıp %170'e çıkıyor; her an bir öncekinden farklı.
+   Ayar iki kez sertleştirildi; kullanıcı her seferinde "yeterince
+   hızlanmıyor, çocuklar oyunu bitiremiyor" dedi. Son hâl: 1.65 hızla
+   başlar, 60 saniyede 3.8'e çıkar (önce 1.5 → 2.7 idi ve 95 sn sürüyordu).
+   Başlangıç bir ara 1.8'di; kullanıcı ilk saniyeleri biraz yavaşlattı.
 
    speedMul zemin, engel, zarf ve koşu animasyonuna AYNI ANDA uygulanır —
    yoksa katmanlar birbirinden kopar.                                     */
-const ZORLUK_SURE = 95;                 // sn: en yüksek zorluğa ulaşma süresi
+const ZORLUK_SURE = 60;                 // sn: en yüksek zorluğa ulaşma süresi
 /* Başlangıç hızı: kullanıcı "başta çok yavaş" dedi (Eyl 2026). Oyun artık
    1.0 yerine 1.5 hızla başlıyor; tavan (2.7) aynı, yani oyunun sonu
    eskisinden hızlı değil, sadece yavaş kısım kısaldı. */
-const SPEED_START = 1.5;                // oyun bu hızla başlar
-const SPEED_MAX = 2.7;                  // en yüksek hız (eski başlangıcın katı)
-const ARA_DARALMA = 0.30;               // engeller arası mesafe en fazla %30 kısalır
+const SPEED_START = 1.65;               // oyun bu hızla başlar
+const SPEED_MAX = 3.8;                  // en yüksek hız (eski başlangıcın katı)
+const ARA_DARALMA = 0.35;               // engeller arası mesafe en fazla %35 kısalır
 /* Engel sıklığı: iki engel arası bekleme bu aralıktan rastgele seçilir
    (saniye, 1.0 hızda). Eskiden 1.9–3.1'di, kullanıcı "engel az" dedi;
    ortalama 2.5 → 1.75 sn (%43 daha sık). Hız bölmesi sayesinde engeller
    arası DÜNYA mesafesi hızla değişmiyor.
    ENGEL_ARA_ALT: gerçek zamanda en az bu kadar ara — oyun sonunda hız
    ve daralma birleşince engeller üst üste binmesin (zıplama 0.86 sn). */
-const ENGEL_ARA_MIN = 1.3, ENGEL_ARA_MAX = 2.2, ENGEL_ARA_ALT = 0.5;
-const ILK_ENGEL = 1.2;                  // oyun başladıktan kaç sn sonra ilk engel
+const ENGEL_ARA_MIN = 1.0, ENGEL_ARA_MAX = 1.7, ENGEL_ARA_ALT = 0.45;
+const ILK_ENGEL = 1.0;                  // oyun başladıktan kaç sn sonra ilk engel
 let speedMul = 1, playTime = 0, zorluk = 0;
 const obstacles = [];
 let obsTimer = 2.2, hitCool = 0, shake = 0;
@@ -497,7 +498,9 @@ const OBS_TYPES = {
    yakalanabilir. high:false → yerdedir; zıplarsan üstünden geçer, kaçırırsın. */
 const token = { u:0, lane:0, active:false, high:false };
 const TOKEN_SPAWN_U = 13;      // engellerle aynı mesafeden gelsin
-const TOKEN_CATCH_HI = 1.06, TOKEN_CATCH_LO = 0.88;   // yakalama penceresi
+/* Yakalama penceresinin üst sınırı. Alt sınır artık TOKEN_GONE_U:
+   yüksek hızda dar pencere tek karede atlanabiliyordu. */
+const TOKEN_CATCH_HI = 1.06;
 const TOKEN_GONE_U = 0.74;     // bunu geçince kaçırıldı sayılır ve kaybolur
 const randLane = ()=> [-1,0,1][Math.floor(Math.random()*3)];
 
@@ -1682,7 +1685,11 @@ function updateObstacles(dt){
     o.u -= dt * FLOW_SPEED * speedMul;             // zemin/ağaçlarla aynı hız
     if(o.u <= 0.55){ obstacles.splice(i,1); continue; }
     // Çarpışma penceresi: oyuncunun hizasından geçerken
-    if(!o.done && o.u < 1.06 && o.u > 0.88 && Math.abs(o.lane - plane.laneVis) < 0.5){
+    /* Pencerenin ALT sınırı yok: yüksek hızda (3.8x) tek karede 0.12
+       birim ilerleniyor, kare düşerse 0.35 birim — 0.88-1.06 aralığı
+       atlanıp çarpışma hiç görülmeyebiliyordu. Artık engel 1.06'nın
+       altına inen İLK karede değerlendiriliyor, bir kez (o.done). */
+    if(!o.done && o.u < 1.06 && Math.abs(o.lane - plane.laneVis) < 0.5){
       const atlandi = o.kind === 'jump' && plane.jumpY > 26;   // yeterince yüksekte mi
       if(!atlandi){ o.done = true; hitObstacle(); }
     }
@@ -1700,7 +1707,7 @@ function updateObstacles(dt){
     if(!engelKoy(lane, types)) return;
     /* Zorluk yükseldikçe bazen İKİ şerit birden kapanır; üçüncü şerit her
        zaman açık kalır, yani çaresiz durum oluşmaz. */
-    if(zorluk > 0.5 && Math.random() < 0.35*zorluk){
+    if(zorluk > 0.35 && Math.random() < 0.5*zorluk){
       const digerleri = [-1,0,1].filter(l => l !== lane);
       engelKoy(digerleri[Math.floor(Math.random()*digerleri.length)], types);
     }
@@ -1921,7 +1928,9 @@ function loop(now){
       token.u -= dt*FLOW_SPEED*speedMul;         // zarf dünyayla aynı hızda yaklaşır
       const ayniSerit = Math.abs(token.lane - plane.laneVis) < 0.5;
       const havada    = plane.jumpY > 60;        // zıplamanın belirgin kısmı
-      if(token.u < TOKEN_CATCH_HI && token.u > TOKEN_CATCH_LO && ayniSerit){
+      /* Zarfta da alt sınır TOKEN_CATCH_LO değil TOKEN_GONE_U: yüksek
+         hızda pencere atlanıp soru boşuna kaçırılıyordu. */
+      if(token.u < TOKEN_CATCH_HI && token.u > TOKEN_GONE_U && ayniSerit){
         // Yüksek zarf ancak HAVADAYKEN, alçak zarf ancak YERDEYKEN yakalanır
         if(token.high ? havada : !havada){ token.active=false; openQuestion(); }
       } else if(token.u <= TOKEN_GONE_U){

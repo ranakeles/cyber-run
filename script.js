@@ -2485,17 +2485,23 @@ window.addEventListener('keydown', e => {
 });
 
 /* ---------- 7) BİTİŞ + BUTONLAR ---------- */
-/* Skor tablosu: ilk 5. Oyuncu ilk 5'e giremediyse kendi satırı GERÇEK
-   sırasıyla en alta eklenir — yoksa çocuk kendi puanını hiç göremezdi.
+/* Skor tablosu: ilk LB_SATIR sıra. Oyuncu oraya giremediyse kendi satırı
+   GERÇEK sırasıyla en alta eklenir — yoksa çocuk kendi puanını hiç göremezdi.
+   Araya atlanan sıralar varsa üç nokta konur: 1-8 … 19 gibi. Oyuncu tam
+   9. olduysa atlanan sıra yok, o zaman nokta da yok — sıralama kesintisiz.
    `kayit` bu oyunun kaydı (nesne kimliğiyle bulunur, aynı puanlı başka
    satırla karışmaz), `sira` ise listeye eklendikten sonraki 0 tabanlı sırası. */
 const LB_SATIR = 8;          // panelde kaç sıra (end_page_boy / end_page_girl2 paneli)
 function renderLb(target, kayit, sira){
   const sirali = LB.slice().sort((a,b)=>b.sc-a.sc);
   const satirlar = sirali.slice(0, LB_SATIR).map((r,i)=>({ r, i }));
-  if(sira >= LB_SATIR) satirlar.push({ r:kayit, i:sira });
-  let html = satirlar.map(({r,i}) =>
-    `<div class="lb-satir ${r===kayit?'ben':''}">` +
+  if(sira >= LB_SATIR){
+    if(sira > LB_SATIR) satirlar.push({ nokta:true });   // arada atlanan sıralar var
+    satirlar.push({ r:kayit, i:sira });
+  }
+  let html = satirlar.map(({r,i,nokta}) =>
+    nokta ? '<div class="lb-satir nokta"><div class="rk">...</div></div>'
+    : `<div class="lb-satir ${r===kayit?'ben':''}">` +
       `<div class="rk">${i+1}</div><div class="nm">${r.nm}</div><div class="sc">${r.sc}</div>` +
     `</div>`).join('');
   /* Tablo boş başladığı için ilk oyunlarda tek satır kalıyor; satırlar

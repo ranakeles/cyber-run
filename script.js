@@ -2525,11 +2525,14 @@ $('#startBtn').addEventListener('click', karakterEkraniAc);
 $('#pickBoy').addEventListener('click',  ()=> karakterSec('oglan'));
 $('#pickGirl').addEventListener('click', ()=> karakterSec('kiz'));
 $('#howStartBtn').addEventListener('click', oyunuBaslat);
-/* Bitiş ekranındaki İKİ buton da başlangıç ekranına döner.
-   Kioskta sıradaki çocuk doğal olarak "TEKRAR DENE"ye basıyor; oradan
-   doğrudan oyun başlasaydı bir önceki çocuğun adıyla oynardı ve skor
-   tablosu yanlış isimlerle dolardı. Artık her oyun mutlaka
-   başlangıç → isim → oyun sırasından geçiyor.                          */
+/* ANA SAYFA: baştan başlar (karakter → isim → nasıl oynanır → oyun).
+   Sıradaki çocuk buradan girer.
+
+   TEKRAR DENE: aynı çocuk tekrar oynuyor demektir — karakteri ve ismi
+   korunur, koşu doğrudan başlar (3-2-1 sayımıyla). Bir ara iki buton da
+   ana sayfaya dönüyordu; sebebi sıradaki çocuğun TEKRAR DENE'ye basıp
+   önceki çocuğun adıyla oynama ihtimaliydi. Kullanıcı bunu geri aldı:
+   o hâlde iki butonun hiçbir farkı kalmıyordu (Eyl 2026).               */
 function anaSayfayaDon(){
   $('#endScreen').classList.add('hidden');
   $('#nameScreen').classList.add('hidden');
@@ -2539,7 +2542,9 @@ function anaSayfayaDon(){
   if(window.logoYerlestir) window.logoYerlestir();
   state = 'idle';
 }
-$('#againBtn').addEventListener('click', anaSayfayaDon);
+/* TEKRAR DENE: karakter ve isim ekranlarını atlar. oyunuBaslat() zaten
+   bitiş ekranını gizliyor, puanı/canı sıfırlıyor ve sayımı başlatıyor. */
+$('#againBtn').addEventListener('click', oyunuBaslat);
 $('#homeBtn').addEventListener('click', anaSayfayaDon);
 
 /* ---------- 8) DURAKLATMA ----------

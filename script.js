@@ -949,6 +949,20 @@ function resize(){
 }
 window.addEventListener('resize', resize);
 
+/* Şerit geçişinin yumuşatma hızı. 12'de karakter yeni şeride ~0.2 sn'de
+   varıyordu; çarpışma görsel konuma baktığı için oyuncu kaydırdıktan sonra
+   0.2 sn daha eski şeritte sayılıyor, hız 3.8x'e çıkınca bu "kaçtım ama
+   çarptım" hissine dönüşüyordu. 18'de geçiş ~0.13 sn.                   */
+const SERIT_GECIS = 18;
+
+/* Çarpışma/yakalama hizası, karakterin ÇİZİLDİĞİ yer (laneVis) ile gitmeye
+   karar verdiği yerin (lane) tam ortasından okunur: kaydırınca oyuncu geçişin
+   yarısını peşin kazanır, "kaçtım ama çarptım" hissi azalır.
+   Niyeti tek başına kullanmak (lane) yanlış olurdu: o zaman geçiş boyunca
+   HER İKİ şerit de boş sayılır, sağa-sola basıp duran çocuk dokunulmaz olurdu.
+   Yarı yol kuralında her an tam bir şerit doludur.                          */
+const etkinSerit = () => plane.laneVis + (plane.lane - plane.laneVis) * 0.5;
+
 // Şerit değiştirme: sağa/sola kaydırma + klavye (sadece uçuş sırasında)
 function seritDegistir(yon){
   if(state!=='flying') return;
@@ -979,19 +993,38 @@ const DROP_V = -1150;          // aşağı hız (yerçekiminden bağımsız, ani
 function doDrop(){
   if(state==='flying' && plane.jumpY > 0) plane.jumpV = Math.min(plane.jumpV, DROP_V);
 }
-let swX=null, swY=null;
-canvas.addEventListener('pointerdown', e=>{ swX=e.clientX; swY=e.clientY; });
+/* Kaydırma, parmak HAREKET EDERKEN algılanır — parmak kalkınca değil.
+   Kioskta çocuklar ekrana bastırıp yavaşça sürüklüyor; hareket 0.2-0.5 sn
+   sürüyor ve eskiden oyun bu sürenin tamamı boyunca hiçbir şey yapmıyordu.
+   "Dokunmaya geç cevap veriyor" şikâyetinin sebebi buydu. Artık eşik
+   aşılır aşılmaz iş yapılıyor: gecikme parmağın ilk 20 pikseli kadar.
+   DEĞİŞTİRME: tetiği tekrar pointerup'a taşıma.                         */
+const KAYDIRMA_ESIGI = 20;      // px — bu kadar hareket = kaydırma sayılır
+let swX=null, swY=null, swYapildi=false;
+// Bir jestte tek iş: eşik aşıldıktan sonra parmak kalkana dek yeni tetik yok
+function kaydirmaDegerlendir(dx, dy){
+  if(swYapildi || Math.max(Math.abs(dx), Math.abs(dy)) <= KAYDIRMA_ESIGI) return;
+  swYapildi = true;
+  if(Math.abs(dx) > Math.abs(dy)) dx>0 ? goRight() : goLeft();   // yana kaydır
+  else if(dy < 0)                 doJump();                      // yukarı = zıpla
+  else                            doDrop();                      // aşağı = hızlı in
+}
+canvas.addEventListener('pointerdown', e=>{
+  swX=e.clientX; swY=e.clientY; swYapildi=false;
+  // Parmak tuvalin dışına taşsa da hareketleri almaya devam edelim
+  try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
+});
+canvas.addEventListener('pointermove', e=>{
+  if(swX===null) return;
+  kaydirmaDegerlendir(e.clientX-swX, e.clientY-swY);
+});
 canvas.addEventListener('pointerup', e=>{
   if(swX===null) return;
-  const dx=e.clientX-swX, dy=e.clientY-swY;
-  if(Math.abs(dx) > Math.abs(dy)){
-    if(Math.abs(dx) > 26){ dx>0 ? goRight() : goLeft(); }          // yana kaydır
-  } else {
-    if(dy < -26)      doJump();                                     // yukarı kaydır = zıpla
-    else if(dy > 26)  doDrop();                                     // aşağı kaydır = hızlı in
-  }
-  swX=swY=null;
+  // Çok hızlı savurmalarda arada pointermove gelmeyebiliyor → son bir kontrol
+  kaydirmaDegerlendir(e.clientX-swX, e.clientY-swY);
+  swX=swY=null; swYapildi=false;
 });
+canvas.addEventListener('pointercancel', ()=>{ swX=swY=null; swYapildi=false; });
 window.addEventListener('keydown', e=>{
   if(e.key==='ArrowLeft'  || e.key==='a') goLeft();
   if(e.key==='ArrowRight' || e.key==='d') goRight();
@@ -1689,7 +1722,7 @@ function updateObstacles(dt){
        birim ilerleniyor, kare düşerse 0.35 birim — 0.88-1.06 aralığı
        atlanıp çarpışma hiç görülmeyebiliyordu. Artık engel 1.06'nın
        altına inen İLK karede değerlendiriliyor, bir kez (o.done). */
-    if(!o.done && o.u < 1.06 && Math.abs(o.lane - plane.laneVis) < 0.5){
+    if(!o.done && o.u < 1.06 && Math.abs(o.lane - etkinSerit()) < 0.5){
       const atlandi = o.kind === 'jump' && plane.jumpY > 26;   // yeterince yüksekte mi
       if(!atlandi){ o.done = true; hitObstacle(); }
     }
@@ -1924,12 +1957,12 @@ function loop(now){
     zorluk  = clamp(playTime/ZORLUK_SURE, 0, 1);
     speedMul = SPEED_START + (SPEED_MAX - SPEED_START) * zorluk;
     plane.bob += dt*7*speedMul; worldScroll += dt*1.6*speedMul;   // koşu + yol akışı
-    plane.laneVis += (plane.lane - plane.laneVis) * Math.min(1, dt*12);  // şerit kaydır
+    plane.laneVis += (plane.lane - plane.laneVis) * Math.min(1, dt*SERIT_GECIS);  // şerit kaydır
     updateJump(dt);
     updateObstacles(dt);
     if(token.active){
       token.u -= dt*FLOW_SPEED*speedMul;         // zarf dünyayla aynı hızda yaklaşır
-      const ayniSerit = Math.abs(token.lane - plane.laneVis) < 0.5;
+      const ayniSerit = Math.abs(token.lane - etkinSerit()) < 0.5;
       const havada    = plane.jumpY > 60;        // zıplamanın belirgin kısmı
       /* Zarfta da alt sınır TOKEN_CATCH_LO değil TOKEN_GONE_U: yüksek
          hızda pencere atlanıp soru boşuna kaçırılıyordu. */
@@ -1943,7 +1976,7 @@ function loop(now){
   } else if(state==='idle' || state==='ended'){
     // Bekleme/bitiş ekranı: sahne arkada canlı akmaya devam eder (attract mod)
     plane.bob += dt*7; worldScroll += dt*1.6;
-    plane.laneVis += (plane.lane - plane.laneVis) * Math.min(1, dt*12);
+    plane.laneVis += (plane.lane - plane.laneVis) * Math.min(1, dt*SERIT_GECIS);
   } else if(state==='naming'){
     // İsim yazılırken manzara yavaşça aksın — donmuş kare bozuk görünüyor
     worldScroll += dt*1.6*0.45; plane.bob += dt*7*0.45;

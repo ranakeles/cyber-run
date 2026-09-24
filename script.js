@@ -440,19 +440,20 @@ const FLOW_SPEED = 1.6 * 1.15;
    Tek bir `zorluk` değeri (0 → 1) her şeyi sürüklüyor: hız, engel sıklığı
    ve çift engel ihtimali. Böylece zorluğu ayarlamak için tek yere bakılır.
 
-   Ayar iki kez sertleştirildi; kullanıcı her seferinde "yeterince
-   hızlanmıyor, çocuklar oyunu bitiremiyor" dedi. Son hâl: 1.65 hızla
-   başlar, 60 saniyede 3.8'e çıkar (önce 1.5 → 2.7 idi ve 95 sn sürüyordu).
+   Ayar iki kez sertleştirildi (kullanıcı "yeterince hızlanmıyor, çocuklar
+   oyunu bitiremiyor" dedi), sonra bir tık geri alındı: kioskta denenince
+   hızlanma fazla geldi. Son hâl: 1.65 hızla başlar, 60 saniyede 3.4'e
+   çıkar (sırasıyla 1.5→2.7 / 95 sn, 1.65→3.8 / 60 sn idi).
    Başlangıç bir ara 1.8'di; kullanıcı ilk saniyeleri biraz yavaşlattı.
 
    speedMul zemin, engel, zarf ve koşu animasyonuna AYNI ANDA uygulanır —
    yoksa katmanlar birbirinden kopar.                                     */
 const ZORLUK_SURE = 60;                 // sn: en yüksek zorluğa ulaşma süresi
-/* Başlangıç hızı: kullanıcı "başta çok yavaş" dedi (Eyl 2026). Oyun artık
-   1.0 yerine 1.5 hızla başlıyor; tavan (2.7) aynı, yani oyunun sonu
-   eskisinden hızlı değil, sadece yavaş kısım kısaldı. */
+/* Başlangıç hızı kullanıcının kendi seçtiği değer (Eyl 2026): "ilk 30
+   saniyenin hızını 1.65 yap". DEĞİŞTİRME — yavaşlatma isteği gelirse
+   tavandan (SPEED_MAX) inilir, başlangıçtan değil. */
 const SPEED_START = 1.65;               // oyun bu hızla başlar
-const SPEED_MAX = 3.8;                  // en yüksek hız (eski başlangıcın katı)
+const SPEED_MAX = 3.4;                  // en yüksek hız (60. sn'de ulaşılır)
 const ARA_DARALMA = 0.35;               // engeller arası mesafe en fazla %35 kısalır
 /* Engel sıklığı: iki engel arası bekleme bu aralıktan rastgele seçilir
    (saniye, 1.0 hızda). Eskiden 1.9–3.1'di, kullanıcı "engel az" dedi;

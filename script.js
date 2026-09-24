@@ -440,19 +440,20 @@ const FLOW_SPEED = 1.6 * 1.15;
    Tek bir `zorluk` değeri (0 → 1) her şeyi sürüklüyor: hız, engel sıklığı
    ve çift engel ihtimali. Böylece zorluğu ayarlamak için tek yere bakılır.
 
-   Ayar iki kez sertleştirildi; kullanıcı her seferinde "yeterince
-   hızlanmıyor, çocuklar oyunu bitiremiyor" dedi. Son hâl: 1.65 hızla
-   başlar, 60 saniyede 3.8'e çıkar (önce 1.5 → 2.7 idi ve 95 sn sürüyordu).
+   Ayar iki kez sertleştirildi (kullanıcı "yeterince hızlanmıyor, çocuklar
+   oyunu bitiremiyor" dedi), sonra bir tık geri alındı: kioskta denenince
+   hızlanma fazla geldi. Son hâl: 1.65 hızla başlar, 60 saniyede 3.4'e
+   çıkar (sırasıyla 1.5→2.7 / 95 sn, 1.65→3.8 / 60 sn idi).
    Başlangıç bir ara 1.8'di; kullanıcı ilk saniyeleri biraz yavaşlattı.
 
    speedMul zemin, engel, zarf ve koşu animasyonuna AYNI ANDA uygulanır —
    yoksa katmanlar birbirinden kopar.                                     */
 const ZORLUK_SURE = 60;                 // sn: en yüksek zorluğa ulaşma süresi
-/* Başlangıç hızı: kullanıcı "başta çok yavaş" dedi (Eyl 2026). Oyun artık
-   1.0 yerine 1.5 hızla başlıyor; tavan (2.7) aynı, yani oyunun sonu
-   eskisinden hızlı değil, sadece yavaş kısım kısaldı. */
+/* Başlangıç hızı kullanıcının kendi seçtiği değer (Eyl 2026): "ilk 30
+   saniyenin hızını 1.65 yap". DEĞİŞTİRME — yavaşlatma isteği gelirse
+   tavandan (SPEED_MAX) inilir, başlangıçtan değil. */
 const SPEED_START = 1.65;               // oyun bu hızla başlar
-const SPEED_MAX = 3.8;                  // en yüksek hız (eski başlangıcın katı)
+const SPEED_MAX = 3.4;                  // en yüksek hız (60. sn'de ulaşılır)
 const ARA_DARALMA = 0.35;               // engeller arası mesafe en fazla %35 kısalır
 /* Engel sıklığı: iki engel arası bekleme bu aralıktan rastgele seçilir
    (saniye, 1.0 hızda). Eskiden 1.9–3.1'di, kullanıcı "engel az" dedi;
@@ -886,6 +887,11 @@ const SECIM_AR = 941/1672;   // karakter seçim ekranı tasarımının oranı (9
    Sabit piksel verilseydi küçük ekranda taşar, kioskta minicik kalırdı. */
 const MOLA_GENISLIK = 0.80;  // sahne genişliğinin oranı
 const MOLA_YUKSEKLIK = 0.74; // sahne yüksekliğini bundan fazla kaplamasın
+/* Sahne pencereyi kaplarken izin verilen en büyük büyütme (1.15 = %15).
+   Kiosk tarayıcısı tam ekran değilken gereken oran 1.07 civarı, yani bu
+   sınırın içinde; yatay pencerelerde ise sınır devreye girip oyunu
+   aşırı yakınlaştırmaktan korur. */
+const KAPLA_UST = 1.15;
 function resize(){
   DPR = Math.min(window.devicePixelRatio||1, 2);
   // Pencereye sığan en büyük 9:16 dikey sahneyi hesapla (kırpma olmasın diye)
@@ -899,8 +905,18 @@ function resize(){
   if(skorKutusu){ skorKutusu.dataset.puan = ''; }   // rakamlar yeni boyla dizilsin
   if(!document.getElementById('hud').classList.contains('hidden')) renderScore();
   canvas.width = W*DPR; canvas.height = H*DPR;
-  canvas.style.width = W+'px'; canvas.style.height = H+'px';
-  // Sahneyi ekranda ortala (yatay/geniş pencerelerde yanlarda koyu boşluk kalır)
+  /* Pencere tam 9:16 değilse sahne ortada kalır ve YANLARDA koyu şerit olur.
+     Kioskta tarayıcı tam ekran değilse (adres çubuğu + sekme şeridi) pencere
+     ~1080x1800 oluyor, yanlarda 34'er px koyu şerit kalıyor ve bu şerit tam
+     binaların üstüne geliyor — kullanıcı "binaların olduğu taraf çizgi çizgi
+     oluyor" diye bunu bildirdi. Sahneyi CSS ile büyütüp pencereyi KAPLIYORUZ;
+     taşan kısım kırpılır. Büyütme KAPLA_UST ile sınırlı: oran çok tutmuyorsa
+     (ör. yatay bir dizüstü penceresi) oyun aşırı yakınlaşmasın, o zaman
+     şeritli ama doğru ölçekli görüntüye dönülür.
+     Tuvalin iç çözünürlüğü değişmiyor: oyun mantığı ve perspektif aynı. */
+  const kapla = Math.min(Math.max(window.innerWidth/W, window.innerHeight/H), KAPLA_UST);
+  canvas.style.width = (W*kapla)+'px'; canvas.style.height = (H*kapla)+'px';
+  // Sahneyi ekranda ortala (oran çok tutmuyorsa yanlarda koyu boşluk kalır)
   canvas.style.position='fixed'; canvas.style.left='50%'; canvas.style.top='50%';
   canvas.style.transform='translate(-50%,-50%)';
   // Üst bar sahneyle aynı genişlikte olsun: skor sahnenin sağ kenarına otursun
@@ -949,6 +965,20 @@ function resize(){
 }
 window.addEventListener('resize', resize);
 
+/* Şerit geçişinin yumuşatma hızı. 12'de karakter yeni şeride ~0.2 sn'de
+   varıyordu; çarpışma görsel konuma baktığı için oyuncu kaydırdıktan sonra
+   0.2 sn daha eski şeritte sayılıyor, hız 3.8x'e çıkınca bu "kaçtım ama
+   çarptım" hissine dönüşüyordu. 18'de geçiş ~0.13 sn.                   */
+const SERIT_GECIS = 18;
+
+/* Çarpışma/yakalama hizası, karakterin ÇİZİLDİĞİ yer (laneVis) ile gitmeye
+   karar verdiği yerin (lane) tam ortasından okunur: kaydırınca oyuncu geçişin
+   yarısını peşin kazanır, "kaçtım ama çarptım" hissi azalır.
+   Niyeti tek başına kullanmak (lane) yanlış olurdu: o zaman geçiş boyunca
+   HER İKİ şerit de boş sayılır, sağa-sola basıp duran çocuk dokunulmaz olurdu.
+   Yarı yol kuralında her an tam bir şerit doludur.                          */
+const etkinSerit = () => plane.laneVis + (plane.lane - plane.laneVis) * 0.5;
+
 // Şerit değiştirme: sağa/sola kaydırma + klavye (sadece uçuş sırasında)
 function seritDegistir(yon){
   if(state!=='flying') return;
@@ -979,19 +1009,38 @@ const DROP_V = -1150;          // aşağı hız (yerçekiminden bağımsız, ani
 function doDrop(){
   if(state==='flying' && plane.jumpY > 0) plane.jumpV = Math.min(plane.jumpV, DROP_V);
 }
-let swX=null, swY=null;
-canvas.addEventListener('pointerdown', e=>{ swX=e.clientX; swY=e.clientY; });
+/* Kaydırma, parmak HAREKET EDERKEN algılanır — parmak kalkınca değil.
+   Kioskta çocuklar ekrana bastırıp yavaşça sürüklüyor; hareket 0.2-0.5 sn
+   sürüyor ve eskiden oyun bu sürenin tamamı boyunca hiçbir şey yapmıyordu.
+   "Dokunmaya geç cevap veriyor" şikâyetinin sebebi buydu. Artık eşik
+   aşılır aşılmaz iş yapılıyor: gecikme parmağın ilk 20 pikseli kadar.
+   DEĞİŞTİRME: tetiği tekrar pointerup'a taşıma.                         */
+const KAYDIRMA_ESIGI = 20;      // px — bu kadar hareket = kaydırma sayılır
+let swX=null, swY=null, swYapildi=false;
+// Bir jestte tek iş: eşik aşıldıktan sonra parmak kalkana dek yeni tetik yok
+function kaydirmaDegerlendir(dx, dy){
+  if(swYapildi || Math.max(Math.abs(dx), Math.abs(dy)) <= KAYDIRMA_ESIGI) return;
+  swYapildi = true;
+  if(Math.abs(dx) > Math.abs(dy)) dx>0 ? goRight() : goLeft();   // yana kaydır
+  else if(dy < 0)                 doJump();                      // yukarı = zıpla
+  else                            doDrop();                      // aşağı = hızlı in
+}
+canvas.addEventListener('pointerdown', e=>{
+  swX=e.clientX; swY=e.clientY; swYapildi=false;
+  // Parmak tuvalin dışına taşsa da hareketleri almaya devam edelim
+  try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
+});
+canvas.addEventListener('pointermove', e=>{
+  if(swX===null) return;
+  kaydirmaDegerlendir(e.clientX-swX, e.clientY-swY);
+});
 canvas.addEventListener('pointerup', e=>{
   if(swX===null) return;
-  const dx=e.clientX-swX, dy=e.clientY-swY;
-  if(Math.abs(dx) > Math.abs(dy)){
-    if(Math.abs(dx) > 26){ dx>0 ? goRight() : goLeft(); }          // yana kaydır
-  } else {
-    if(dy < -26)      doJump();                                     // yukarı kaydır = zıpla
-    else if(dy > 26)  doDrop();                                     // aşağı kaydır = hızlı in
-  }
-  swX=swY=null;
+  // Çok hızlı savurmalarda arada pointermove gelmeyebiliyor → son bir kontrol
+  kaydirmaDegerlendir(e.clientX-swX, e.clientY-swY);
+  swX=swY=null; swYapildi=false;
 });
+canvas.addEventListener('pointercancel', ()=>{ swX=swY=null; swYapildi=false; });
 window.addEventListener('keydown', e=>{
   if(e.key==='ArrowLeft'  || e.key==='a') goLeft();
   if(e.key==='ArrowRight' || e.key==='d') goRight();
@@ -1689,7 +1738,7 @@ function updateObstacles(dt){
        birim ilerleniyor, kare düşerse 0.35 birim — 0.88-1.06 aralığı
        atlanıp çarpışma hiç görülmeyebiliyordu. Artık engel 1.06'nın
        altına inen İLK karede değerlendiriliyor, bir kez (o.done). */
-    if(!o.done && o.u < 1.06 && Math.abs(o.lane - plane.laneVis) < 0.5){
+    if(!o.done && o.u < 1.06 && Math.abs(o.lane - etkinSerit()) < 0.5){
       const atlandi = o.kind === 'jump' && plane.jumpY > 26;   // yeterince yüksekte mi
       if(!atlandi){ o.done = true; hitObstacle(); }
     }
@@ -1924,12 +1973,12 @@ function loop(now){
     zorluk  = clamp(playTime/ZORLUK_SURE, 0, 1);
     speedMul = SPEED_START + (SPEED_MAX - SPEED_START) * zorluk;
     plane.bob += dt*7*speedMul; worldScroll += dt*1.6*speedMul;   // koşu + yol akışı
-    plane.laneVis += (plane.lane - plane.laneVis) * Math.min(1, dt*12);  // şerit kaydır
+    plane.laneVis += (plane.lane - plane.laneVis) * Math.min(1, dt*SERIT_GECIS);  // şerit kaydır
     updateJump(dt);
     updateObstacles(dt);
     if(token.active){
       token.u -= dt*FLOW_SPEED*speedMul;         // zarf dünyayla aynı hızda yaklaşır
-      const ayniSerit = Math.abs(token.lane - plane.laneVis) < 0.5;
+      const ayniSerit = Math.abs(token.lane - etkinSerit()) < 0.5;
       const havada    = plane.jumpY > 60;        // zıplamanın belirgin kısmı
       /* Zarfta da alt sınır TOKEN_CATCH_LO değil TOKEN_GONE_U: yüksek
          hızda pencere atlanıp soru boşuna kaçırılıyordu. */
@@ -1943,7 +1992,7 @@ function loop(now){
   } else if(state==='idle' || state==='ended'){
     // Bekleme/bitiş ekranı: sahne arkada canlı akmaya devam eder (attract mod)
     plane.bob += dt*7; worldScroll += dt*1.6;
-    plane.laneVis += (plane.lane - plane.laneVis) * Math.min(1, dt*12);
+    plane.laneVis += (plane.lane - plane.laneVis) * Math.min(1, dt*SERIT_GECIS);
   } else if(state==='naming'){
     // İsim yazılırken manzara yavaşça aksın — donmuş kare bozuk görünüyor
     worldScroll += dt*1.6*0.45; plane.bob += dt*7*0.45;
@@ -2451,17 +2500,23 @@ function platformaYazdir(ad, puan, sira){
   });
 }
 
-/* Skor tablosu: ilk 5. Oyuncu ilk 5'e giremediyse kendi satırı GERÇEK
-   sırasıyla en alta eklenir — yoksa çocuk kendi puanını hiç göremezdi.
+/* Skor tablosu: ilk LB_SATIR sıra. Oyuncu oraya giremediyse kendi satırı
+   GERÇEK sırasıyla en alta eklenir — yoksa çocuk kendi puanını hiç göremezdi.
+   Araya atlanan sıralar varsa üç nokta konur: 1-8 … 19 gibi. Oyuncu tam
+   9. olduysa atlanan sıra yok, o zaman nokta da yok — sıralama kesintisiz.
    `kayit` bu oyunun kaydı (nesne kimliğiyle bulunur, aynı puanlı başka
    satırla karışmaz), `sira` ise listeye eklendikten sonraki 0 tabanlı sırası. */
 const LB_SATIR = 8;          // panelde kaç sıra (end_page_boy / end_page_girl2 paneli)
 function renderLb(target, kayit, sira){
   const sirali = LB.slice().sort((a,b)=>b.sc-a.sc);
   const satirlar = sirali.slice(0, LB_SATIR).map((r,i)=>({ r, i }));
-  if(sira >= LB_SATIR) satirlar.push({ r:kayit, i:sira });
-  let html = satirlar.map(({r,i}) =>
-    `<div class="lb-satir ${r===kayit?'ben':''}">` +
+  if(sira >= LB_SATIR){
+    if(sira > LB_SATIR) satirlar.push({ nokta:true });   // arada atlanan sıralar var
+    satirlar.push({ r:kayit, i:sira });
+  }
+  let html = satirlar.map(({r,i,nokta}) =>
+    nokta ? '<div class="lb-satir nokta"><div class="rk">...</div></div>'
+    : `<div class="lb-satir ${r===kayit?'ben':''}">` +
       `<div class="rk">${i+1}</div><div class="nm">${r.nm}</div><div class="sc">${r.sc}</div>` +
     `</div>`).join('');
   /* Tablo boş başladığı için ilk oyunlarda tek satır kalıyor; satırlar
@@ -2507,11 +2562,14 @@ $('#startBtn').addEventListener('click', karakterEkraniAc);
 $('#pickBoy').addEventListener('click',  ()=> karakterSec('oglan'));
 $('#pickGirl').addEventListener('click', ()=> karakterSec('kiz'));
 $('#howStartBtn').addEventListener('click', oyunuBaslat);
-/* Bitiş ekranındaki İKİ buton da başlangıç ekranına döner.
-   Kioskta sıradaki çocuk doğal olarak "TEKRAR DENE"ye basıyor; oradan
-   doğrudan oyun başlasaydı bir önceki çocuğun adıyla oynardı ve skor
-   tablosu yanlış isimlerle dolardı. Artık her oyun mutlaka
-   başlangıç → isim → oyun sırasından geçiyor.                          */
+/* ANA SAYFA: baştan başlar (karakter → isim → nasıl oynanır → oyun).
+   Sıradaki çocuk buradan girer.
+
+   TEKRAR DENE: aynı çocuk tekrar oynuyor demektir — karakteri ve ismi
+   korunur, koşu doğrudan başlar (3-2-1 sayımıyla). Bir ara iki buton da
+   ana sayfaya dönüyordu; sebebi sıradaki çocuğun TEKRAR DENE'ye basıp
+   önceki çocuğun adıyla oynama ihtimaliydi. Kullanıcı bunu geri aldı:
+   o hâlde iki butonun hiçbir farkı kalmıyordu (Eyl 2026).               */
 function anaSayfayaDon(){
   $('#endScreen').classList.add('hidden');
   $('#nameScreen').classList.add('hidden');
@@ -2521,7 +2579,9 @@ function anaSayfayaDon(){
   if(window.logoYerlestir) window.logoYerlestir();
   state = 'idle';
 }
-$('#againBtn').addEventListener('click', anaSayfayaDon);
+/* TEKRAR DENE: karakter ve isim ekranlarını atlar. oyunuBaslat() zaten
+   bitiş ekranını gizliyor, puanı/canı sıfırlıyor ve sayımı başlatıyor. */
+$('#againBtn').addEventListener('click', oyunuBaslat);
 $('#homeBtn').addEventListener('click', anaSayfayaDon);
 
 /* ---------- 8) DURAKLATMA ----------

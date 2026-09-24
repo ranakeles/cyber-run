@@ -224,6 +224,11 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
 /* Oyuncunun kendi satırı öne çıksın */
 .lb-satir.ben{ color:#c2410c; }
 .lb-satir.ben .rk{ color:#c2410c; }
+/* Atlanan sıraların yerine üç nokta: sıra sütununda, rakamlarla aynı
+   hizada ve aynı renkte. Satır yüksekliği diğerlerinin yarısı —
+   panelde 10 satır olunca yer açsın, ayrıca sıra gibi okunmasın. */
+.lb-satir.nokta{ font-size:.8em; line-height:.5; }
+.lb-satir.nokta .rk{ color:#8a6f45; letter-spacing:.08em; }
 /* Görseldeki butonların üstündeki görünmez dokunma alanları */
 /* Logo: sol üst köşedeki boş gökyüzü. end_page_boy / end_page_girl2
    (941x1672) içinde kutu x 33-296, y 37-90 — ölçüldü: bölgenin yalnızca

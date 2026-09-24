@@ -887,6 +887,11 @@ const SECIM_AR = 941/1672;   // karakter seçim ekranı tasarımının oranı (9
    Sabit piksel verilseydi küçük ekranda taşar, kioskta minicik kalırdı. */
 const MOLA_GENISLIK = 0.80;  // sahne genişliğinin oranı
 const MOLA_YUKSEKLIK = 0.74; // sahne yüksekliğini bundan fazla kaplamasın
+/* Sahne pencereyi kaplarken izin verilen en büyük büyütme (1.15 = %15).
+   Kiosk tarayıcısı tam ekran değilken gereken oran 1.07 civarı, yani bu
+   sınırın içinde; yatay pencerelerde ise sınır devreye girip oyunu
+   aşırı yakınlaştırmaktan korur. */
+const KAPLA_UST = 1.15;
 function resize(){
   DPR = Math.min(window.devicePixelRatio||1, 2);
   // Pencereye sığan en büyük 9:16 dikey sahneyi hesapla (kırpma olmasın diye)
@@ -900,8 +905,18 @@ function resize(){
   if(skorKutusu){ skorKutusu.dataset.puan = ''; }   // rakamlar yeni boyla dizilsin
   if(!document.getElementById('hud').classList.contains('hidden')) renderScore();
   canvas.width = W*DPR; canvas.height = H*DPR;
-  canvas.style.width = W+'px'; canvas.style.height = H+'px';
-  // Sahneyi ekranda ortala (yatay/geniş pencerelerde yanlarda koyu boşluk kalır)
+  /* Pencere tam 9:16 değilse sahne ortada kalır ve YANLARDA koyu şerit olur.
+     Kioskta tarayıcı tam ekran değilse (adres çubuğu + sekme şeridi) pencere
+     ~1080x1800 oluyor, yanlarda 34'er px koyu şerit kalıyor ve bu şerit tam
+     binaların üstüne geliyor — kullanıcı "binaların olduğu taraf çizgi çizgi
+     oluyor" diye bunu bildirdi. Sahneyi CSS ile büyütüp pencereyi KAPLIYORUZ;
+     taşan kısım kırpılır. Büyütme KAPLA_UST ile sınırlı: oran çok tutmuyorsa
+     (ör. yatay bir dizüstü penceresi) oyun aşırı yakınlaşmasın, o zaman
+     şeritli ama doğru ölçekli görüntüye dönülür.
+     Tuvalin iç çözünürlüğü değişmiyor: oyun mantığı ve perspektif aynı. */
+  const kapla = Math.min(Math.max(window.innerWidth/W, window.innerHeight/H), KAPLA_UST);
+  canvas.style.width = (W*kapla)+'px'; canvas.style.height = (H*kapla)+'px';
+  // Sahneyi ekranda ortala (oran çok tutmuyorsa yanlarda koyu boşluk kalır)
   canvas.style.position='fixed'; canvas.style.left='50%'; canvas.style.top='50%';
   canvas.style.transform='translate(-50%,-50%)';
   // Üst bar sahneyle aynı genişlikte olsun: skor sahnenin sağ kenarına otursun

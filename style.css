@@ -61,7 +61,9 @@
   --sun:#ffc14a; --sun-dk:#b9761a;
 }
 *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-html,body{ height:100%; overflow:hidden; }
+/* overscroll-behavior olmadan macOS/trackpad tekerlek hareketi, gerçek bir
+   kaydırma alanı olmasa da sayfayı hafifçe kaydırıyormuş gibi zıplatıyordu. */
+html,body{ height:100%; overflow:hidden; overscroll-behavior:none; }
 body{ font-family:var(--body); color:var(--text); background:#0b1020; user-select:none; touch-action:none; }
 .hidden{ display:none !important; }
 
@@ -165,7 +167,9 @@ body{ font-family:var(--body); color:var(--text); background:#0b1020; user-selec
    tam gösterip arkasını aynı görselin bulanık kopyasıyla dolduruyoruz. */
 .overlay.home{ padding:0; background:#0a1a3a; gap:0; }
 .home-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-  filter:blur(26px) brightness(.65); transform:scale(1.12); }
+  filter:blur(26px) brightness(.65); 
+  /* transform:scale(1.12);  */
+}
 /* Görsel ekranı DOLDURUR (contain): eskiden yalnızca max-width/max-height
    vardı ve görsel kendi boyundan büyümüyordu — 1080x1920 kioskta 853x1844
    kalıp dört yanda boşluk bırakıyordu. home_page4 9:16 olduğu için kioskta
@@ -378,3 +382,42 @@ body.kiz .pause-home  { left:19.77%; width:55.80%; top:69.44%; height:13.95%; }
   white-space:nowrap; color:#2b2114; }
 
 @media (max-width:560px){ .zones{ grid-template-columns:1fr; } }
+
+/* ---------- PLATFORM PANELİ (geliştirici) ----------
+   Oyunun tasarımıyla ilgisi yok, o yüzden sahnenin 9:16 ölçeğine değil
+   gerçek pencereye bağlı: sağ alt köşede sabit duruyor, her şeyin üstünde. */
+#pdBtn{
+  position:fixed; right:10px; bottom:10px; z-index:9999;
+  width:34px; height:34px; border-radius:50%; border:none;
+  background:rgba(0,0,0,.35); color:#fff; font-size:16px; line-height:1;
+  cursor:pointer;
+}
+#pdPanel{
+  position:fixed; right:10px; bottom:52px; z-index:9999;
+  width:240px; max-width:calc(100vw - 20px);
+  background:rgba(20,20,30,.92); color:#e5e7eb; border-radius:10px;
+  padding:10px; font:12px/1.4 system-ui, sans-serif;
+}
+#pdPanel.gizli{ display:none; }
+#pdPanel .pd-ust{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+#pdPanel .pd-ust b{ font-size:13px; }
+#pdKapatBtn{
+  background:none; border:none; color:#e5e7eb; font-size:16px; line-height:1; cursor:pointer;
+}
+#pdPanel .pd-satir{ margin:2px 0; color:#cbd5e1; }
+#pdPanel .pd-satir span{ color:#fff; font-weight:600; }
+#pdPanel .pd-butonlar{ display:flex; flex-wrap:wrap; gap:4px; margin:8px 0; }
+#pdPanel .pd-butonlar button{
+  flex:1 1 auto; min-width:0; font-size:11px; padding:5px 6px; border:none; border-radius:5px;
+  background:#374151; color:#fff; cursor:pointer;
+}
+#pdPanel .pd-form{ display:flex; flex-wrap:wrap; gap:4px; border-top:1px solid rgba(255,255,255,.15); padding-top:8px; }
+/* input/select boyların varsayılan intrinsic genişliği flex-basis'i yok sayıp
+   satırı taşırıyordu (min-width:auto varsayılanı) — width:0 ile bastırıldı. */
+#pdPanel .pd-form input{
+  flex:1 1 60px; min-width:0; width:0; font-size:11px; padding:5px 6px; border:none; border-radius:5px;
+}
+#pdPanel .pd-form button{
+  flex:1 1 100%; min-width:0; font-size:11px; padding:6px; border:none; border-radius:5px;
+  background:#7c3aed; color:#fff; cursor:pointer;
+}

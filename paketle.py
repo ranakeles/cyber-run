@@ -196,6 +196,17 @@ if kalan:
 # Bu yüzden yerine koyma bir lambda ile yapılır (ham metin korunur).
 html = re.sub(r'\s*<link rel="stylesheet" href="style\.css">',
               lambda m: "\n  <style>\n%s\n  </style>" % css, html)
+# Kiosk platformu scriptleri (sample-vanilla-js/js/*.js) de gömülüyor:
+# yoksa tek dosyalık pakette bu dosyalar bulunamıyor ve bilet yazdırma
+# hiç çalışmıyor. Sıra korunuyor, hepsi script.js'ten önce yükleniyor.
+for yol in re.findall(r'<script src="([^"]+)"></script>', html):
+    if yol == "script.js":
+        continue
+    kaynak = open(os.path.join(SRC, yol), encoding="utf-8").read()
+    html = html.replace('<script src="%s"></script>' % yol,
+                        "<script>\n%s\n</script>" % kaynak)
+    print("Gömülen script:", yol)
+
 html = re.sub(r'<script src="script\.js"></script>',
               lambda m: "<script>\n%s\n</script>" % js, html)
 
